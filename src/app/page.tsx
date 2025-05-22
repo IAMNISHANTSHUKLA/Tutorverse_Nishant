@@ -15,8 +15,6 @@ import { processUserQuery } from './actions';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AuthStatus } from '@/components/auth-components'; 
-import { useAuth } from '@/contexts/auth-context'; 
 
 /**
  * HomePage component: Serves as the main interface for the TutorVerse application.
@@ -36,7 +34,6 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const { user, isLoading: authIsLoading, isFirebaseConfigured } = useAuth();
 
   // Scroll to the bottom of the chat messages when new messages are added.
   const scrollToBottom = () => {
@@ -45,17 +42,17 @@ export default function HomePage() {
 
   React.useEffect(scrollToBottom, [messages]);
 
-  // Focus the input field when the component mounts or when user logs in/out, if Firebase is configured
+  // Focus the input field when the component mounts
   React.useEffect(() => {
-    if (isFirebaseConfigured && !authIsLoading && document.activeElement !== inputRef.current) {
+    if (document.activeElement !== inputRef.current) {
        setTimeout(() => inputRef.current?.focus(), 0);
     }
-  }, [authIsLoading, user, isFirebaseConfigured]);
+  }, []);
 
   // Handles the submission of the user's query.
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!isFirebaseConfigured || !query.trim() || isLoading || !user) return; 
+    if (!query.trim() || isLoading) return; 
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -98,17 +95,15 @@ export default function HomePage() {
       );
     } finally {
       setIsLoading(false);
-      if (isFirebaseConfigured) {
-        setTimeout(() => inputRef.current?.focus(), 0);
-      }
+      setTimeout(() => inputRef.current?.focus(), 0);
     }
   };
 
-  // Welcome section with conditional rendering based on auth state
+  // Welcome section
   const WelcomeSection = () => (
     <div className="relative w-full h-auto md:h-[calc(100vh-350px)] min-h-[350px] rounded-lg overflow-hidden shadow-xl mb-10 flex items-center justify-center p-4 bg-secondary/10">
       <Image
-        src="https://placehold.co/1200x600/FFFFE0/008080" 
+        src="https://placehold.co/1200x600.png" 
         alt="A cheerful and inviting learning environment with abstract educational icons"
         fill
         style={{ objectFit: "cover" }}
@@ -125,25 +120,7 @@ export default function HomePage() {
         <p className="text-lg md:text-xl text-foreground mb-8">
           TutorVerse is your fun, AI-powered pal for mastering Math and Physics. Let's learn something new today!
         </p>
-        {!authIsLoading && !user && isFirebaseConfigured && (
-          <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-6 sm:px-10 py-4 sm:py-7 shadow-lg transform hover:scale-105 transition-transform rounded-full">
-            <Link href="/signin">
-              Start Your Adventure! <Rocket className="ml-2 h-5 w-5" />
-            </Link>
-          </Button>
-        )}
-         {user && isFirebaseConfigured && (
-           <p className="text-2xl font-semibold text-accent">Ready to explore, {user.displayName || 'Explorer'}?</p>
-        )}
-        {!isFirebaseConfigured && (
-           <Alert variant="destructive" className="mt-4 max-w-lg mx-auto">
-             <AlertTriangle className="h-4 w-4" />
-             <AlertTitle>Authentication Unavailable</AlertTitle>
-             <AlertDescription>
-               Sign-in is currently not working due to a configuration issue. Please check the console for details.
-             </AlertDescription>
-           </Alert>
-        )}
+         <p className="text-2xl font-semibold text-accent">Ask your first question below!</p>
       </div>
     </div>
   );
@@ -188,42 +165,32 @@ export default function HomePage() {
             TutorVerse
           </h1>
         </Link>
-        <AuthStatus /> 
+        {/* AuthStatus component removed */}
       </header>
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 flex flex-col p-0 md:p-4">
           <ScrollArea className="flex-1" id="message-scroll-area">
             <div className="p-4 md:p-6 space-y-6">
-              {messages.length <= 1 && !user && !authIsLoading && ( 
+              {messages.length <= 1 && ( 
                 <>
                   <WelcomeSection />
                   <FeatureCards />
                 </>
               )}
               
-              { (messages.length > 1 || (user && !authIsLoading)) && messages.map((msg) => (
+              {messages.map((msg) => (
                 <ChatMessage key={msg.id} {...msg} />
               ))}
               <div ref={messagesEndRef} />
             </div>
 
-            {user && !authIsLoading && isFirebaseConfigured && messages.length === 1 && messages[0].intent === 'greeting' && (
+            {messages.length === 1 && messages[0].intent === 'greeting' && (
               <div className="flex flex-col items-center justify-center text-center p-10 text-muted-foreground mt-8">
                 <MessageSquareDashed className="w-24 h-24 mb-6 text-primary/70" />
                 <p className="text-xl font-semibold text-foreground">Ask me anything about Math or Physics!</p>
                 <p className="text-md mt-1">For example: &quot;What is pi?&quot; or &quot;Explain gravity!&quot;</p>
               </div>
-            )}
-             {!isFirebaseConfigured && !authIsLoading && messages.length === 1 && (
-                <div className="flex flex-col items-center justify-center text-center p-10 text-muted-foreground mt-8">
-                    <AlertTriangle className="w-24 h-24 mb-6 text-destructive/70" />
-                    <p className="text-xl font-semibold text-destructive">Chat Unavailable</p>
-                    <p className="text-md mt-1 text-foreground">
-                        The chat functionality is temporarily disabled due to a configuration issue.
-                        Please ensure Firebase is set up correctly.
-                    </p>
-                </div>
             )}
           </ScrollArea>
 
@@ -234,22 +201,16 @@ export default function HomePage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={
-                  !isFirebaseConfigured
-                    ? "Chat unavailable (Firebase not configured)"
-                    : user 
-                      ? "Type your question here, explorer!" 
-                      : "Please sign in to ask questions!"
-                }
+                placeholder={"Type your question here, explorer!"}
                 className="flex-1 rounded-full px-6 py-4 text-base focus-visible:ring-primary shadow-inner bg-input text-foreground placeholder:text-muted-foreground"
-                disabled={isLoading || !user || !isFirebaseConfigured } 
+                disabled={isLoading} 
                 aria-label="Your question"
               />
               <Button
                 type="submit"
                 size="icon"
                 className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90 disabled:bg-muted/70 text-primary-foreground shadow-lg transform hover:scale-105 transition-transform"
-                disabled={isLoading || !query.trim() || !user || !isFirebaseConfigured }
+                disabled={isLoading || !query.trim()}
                 aria-label="Send question"
               >
                 <SendHorizonal className={cn("h-6 w-6", isLoading ? "animate-pulse" : "")} />
