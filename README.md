@@ -11,8 +11,7 @@ TutorVerse is a friendly and interactive AI-powered learning assistant designed 
     *   **Tutor Agent (Main)**: Recognizes user intent (Math, Physics, or other).
     *   **Math Agent (Sub-Agent)**: Specializes in math-related questions, equipped with a calculator tool for arithmetic operations.
     *   **Physics Agent (Sub-Agent)**: Specializes in physics-related questions, equipped with a tool to look up physical constants.
-*   **Google Authentication**: Secure sign-in with Google, personalizing the user experience.
-*   **Child-Friendly UI**: Designed with a cheerful and engaging theme (Teal, Light Yellow, Orange) suitable for younger learners.
+*   **Child-Friendly UI**: Designed with a cheerful and engaging theme (Teal, Light Yellow, Orange).
 *   **Responsive Design**: Adapts to different screen sizes.
 *   **Built with Modern Tech**: Utilizes Next.js, React, ShadCN UI, and Tailwind CSS.
 
@@ -28,8 +27,6 @@ TutorVerse is a friendly and interactive AI-powered learning assistant designed 
 *   **AI/Generative Backend**:
     *   [Genkit (by Google)](https://firebase.google.com/docs/genkit)
     *   Google AI (Gemini models)
-*   **Authentication**:
-    *   [Firebase Authentication](https://firebase.google.com/docs/auth) (Google Sign-In)
 *   **Icons**:
     *   [Lucide React](https://lucide.dev/)
 
@@ -48,38 +45,23 @@ TutorVerse is a friendly and interactive AI-powered learning assistant designed 
     yarn install
     ```
 
-3.  **Firebase Setup**:
-    *   Go to the [Firebase Console](https://console.firebase.google.com/).
-    *   Create a new project or use an existing one.
-    *   In your project, go to **Project Settings** > **General**.
-    *   Under "Your apps", click the Web icon (`</>`) to add a new web app.
-    *   Register your app and Firebase will provide you with a `firebaseConfig` object.
-    *   **Important**: The project currently uses a hardcoded Firebase configuration in `src/lib/firebase/config.ts`. For a production setup or better security, you should ideally move these to environment variables. If you wish to use environment variables:
-        *   Create a file named `.env.local` in the root of your project.
-        *   Add your Firebase configuration keys:
-            ```env
-            NEXT_PUBLIC_FIREBASE_API_KEY=your_api_key
-            NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
-            NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
-            NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-            NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-            NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
-            ```
-    *   **Enable Google Sign-In**:
-        *   In the Firebase Console, go to **Authentication** (under Build in the left sidebar).
-        *   Go to the **Sign-in method** tab.
-        *   Click on **Google** in the list of providers.
-        *   Enable the Google provider and provide a project support email.
-        *   Click **Save**.
-
-4.  **Google AI API Key for Genkit**:
-    *   Genkit requires access to a Google AI model (like Gemini). You'll need an API key for this.
-    *   Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to create an API key.
-    *   Set this API key as an environment variable. Create/update your `.env` or `.env.local` file in the root of your project:
-        ```env
-        GOOGLE_API_KEY=your_google_ai_api_key
+3.  **Google AI API Key for Genkit**:
+    *   Genkit requires access to a Google AI model (like Gemini).
+    *   **Important**: The Google AI API Key is currently **hardcoded** in `src/ai/genkit.ts` for ease of initial setup in development environments like Firebase Studio.
+        ```typescript
+        // src/ai/genkit.ts
+        const GOOGLE_API_KEY = "YOUR_API_KEY_IS_CURRENTLY_HERE"; 
+        // ...
+        googleAI({ apiKey: GOOGLE_API_KEY })
+        // ...
         ```
-    *   Note: The `genkit` object in `src/ai/genkit.ts` is configured to use `googleAI()`. This plugin will automatically look for the `GOOGLE_API_KEY` environment variable.
+    *   **For Production**: It is **strongly recommended** to remove the hardcoded API key from `src/ai/genkit.ts` and instead set it as an environment variable. To do this:
+        1.  Remove or comment out the `const GOOGLE_API_KEY = "...";` line and the direct `apiKey` provision in `src/ai/genkit.ts`. The `googleAI()` plugin will then automatically look for the `GOOGLE_API_KEY` environment variable.
+        2.  Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to create an API key if you don't have one.
+        3.  Set this API key as an environment variable named `GOOGLE_API_KEY` in your deployment environment (e.g., Firebase Studio project settings, or a `.env` / `.env.local` file for local development if you switch back to env vars).
+            ```env
+            GOOGLE_API_KEY=your_google_ai_api_key_from_ai_studio
+            ```
 
 ## ධ Running the Application
 
