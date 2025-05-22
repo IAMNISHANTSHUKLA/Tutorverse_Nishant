@@ -5,13 +5,13 @@
 import type * as React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { type User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth, googleAuthProvider } from '@/lib/firebase/config'; // auth can now be null
+import { auth, googleAuthProvider } from '@/lib/firebase/config'; // auth should now be initialized directly
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  isFirebaseConfigured: boolean;
+  // isFirebaseConfigured is effectively always true now with hardcoded config
   signInWithGoogle: () => Promise<User | null>;
   signOut: () => Promise<void>;
 }
@@ -23,35 +23,17 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
-  const isFirebaseConfigured = !!auth; // Check if Firebase auth was initialized
-
   useEffect(() => {
-    if (!isFirebaseConfigured) {
+    // Firebase is now initialized directly in config.ts
+    // So, 'auth' should be available.
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
       setIsLoading(false);
-      console.warn("AuthProvider: Firebase is not configured. Auth features will be disabled.");
-      return;
-    }
-
-    // This line ensures auth is not null before passing to onAuthStateChanged
-    if (auth) {
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-          setUser(currentUser);
-          setIsLoading(false);
-        });
-        return () => unsubscribe();
-    }
-  }, [isFirebaseConfigured]);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const signInWithGoogle = async (): Promise<User | null> => {
-    if (!isFirebaseConfigured || !auth || !googleAuthProvider) {
-      toast({
-        title: "Authentication Unavailable",
-        description: "Firebase is not configured correctly. Please contact support or check environment variables.",
-        variant: "destructive",
-      });
-      setIsLoading(false); // Ensure loading state is updated
-      return null;
-    }
     setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, googleAuthProvider);
@@ -60,9 +42,17 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
       return result.user;
     } catch (error: any) {
       console.error("Error signing in with Google:", error);
+      let errorMessage = "Failed to sign in with Google. Please try again.";
+      if (error.code === 'auth/popup-closed-by-user') {
+        errorMessage = "Sign-in popup was closed. Please try again.";
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        errorMessage = "Sign-in was cancelled. Please try again if this was a mistake.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
       toast({
         title: "Sign-in Error",
-        description: error.message || "Failed to sign in with Google. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
       setUser(null);
@@ -73,14 +63,6 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const signOut = async () => {
-    if (!isFirebaseConfigured || !auth) {
-      toast({
-        title: "Authentication Unavailable",
-        description: "Firebase is not configured correctly.",
-        variant: "destructive",
-      });
-      return;
-    }
     setIsLoading(true);
     try {
       await firebaseSignOut(auth);
@@ -99,7 +81,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, isFirebaseConfigured, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, isLoading, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );

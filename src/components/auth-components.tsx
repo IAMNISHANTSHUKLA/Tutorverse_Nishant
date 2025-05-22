@@ -16,40 +16,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogIn, LogOut, User as UserIcon, Settings, LayoutDashboard, AlertTriangle } from 'lucide-react'; // Added Settings, LayoutDashboard, AlertTriangle
+import { LogIn, LogOut, User as UserIcon, Settings, LayoutDashboard } from 'lucide-react'; 
 import { Skeleton } from './ui/skeleton';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'; // No longer needed for config error
+// import { AlertTriangle } from 'lucide-react'; // No longer needed for config error
 
 export function AuthStatus() {
-  const { user, isLoading, signOut, isFirebaseConfigured } = useAuth();
+  const { user, isLoading, signOut } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
-    if (!isFirebaseConfigured) return;
     await signOut();
     router.push('/signin'); // Optionally redirect to sign-in after sign-out
   };
 
   if (isLoading) {
     return <Skeleton className="h-10 w-24 rounded-md" />;
-  }
-
-  if (!isFirebaseConfigured) {
-    return (
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive cursor-not-allowed">
-              <AlertTriangle className="mr-2 h-4 w-4" />
-              Auth Error
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Firebase not configured. Authentication unavailable.</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    );
   }
 
   if (!user) {
@@ -87,12 +69,11 @@ export function AuthStatus() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {/* Example items - can be linked to actual pages later */}
         <DropdownMenuItem onClick={() => router.push('/')}>
           <LayoutDashboard className="mr-2 h-4 w-4" />
           <span>Dashboard</span>
         </DropdownMenuItem>
-        <DropdownMenuItem disabled> {/* Example of a disabled item */}
+        <DropdownMenuItem disabled> 
           <Settings className="mr-2 h-4 w-4" />
           <span>Settings</span>
         </DropdownMenuItem>

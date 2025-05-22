@@ -5,65 +5,39 @@ import { getAuth, GoogleAuthProvider, type Auth } from "firebase/auth";
 // Add other Firebase services like Firestore if needed:
 // import { getFirestore } from "firebase/firestore";
 
-const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-const authDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN;
-const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
-const storageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET;
-const messagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID;
-const appId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID;
+// User-provided Firebase configuration
+const firebaseConfig: FirebaseOptions = {
+  apiKey: "AIzaSyBTPD7aUSndK-kdM383lPcpPYLxMlZ2xuo",
+  authDomain: "tutorverse-n7dwu.firebaseapp.com",
+  projectId: "tutorverse-n7dwu",
+  storageBucket: "tutorverse-n7dwu.appspot.com", // Corrected common typo: .appspot.com
+  messagingSenderId: "824886474980",
+  appId: "1:824886474980:web:c0567c4341244486f394f1"
+};
 
-let app: FirebaseApp | null = null;
-let auth: Auth | null = null;
-let googleAuthProvider: GoogleAuthProvider | null = null;
+let app: FirebaseApp;
+let auth: Auth;
+let googleAuthProvider: GoogleAuthProvider;
 
-if (!apiKey) {
-  console.error(
-    "CRITICAL_ERROR: Firebase API Key (NEXT_PUBLIC_FIREBASE_API_KEY) is missing or undefined. " +
-    "Please ensure this environment variable is set correctly in your Firebase Studio project settings (or .env.local for local development). " +
-    "After setting it, you MUST restart/redeploy your application for the change to take effect. " +
-    "Firebase initialization is skipped, and authentication will NOT work."
-  );
-} else {
-  const firebaseConfig: FirebaseOptions = {
-    apiKey: apiKey,
-    authDomain: authDomain,
-    projectId: projectId,
-    storageBucket: storageBucket,
-    messagingSenderId: messagingSenderId,
-    appId: appId,
-    // measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID, // Optional
-  };
-
-  if (!authDomain) {
-    console.warn(
-      "Firebase Auth Domain (NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN) is missing. This might cause issues with authentication."
-    );
-  }
-  if (!projectId) {
-    console.warn(
-      "Firebase Project ID (NEXT_PUBLIC_FIREBASE_PROJECT_ID) is missing. This might cause issues with Firebase services."
-    );
+try {
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+  } else {
+    app = getApp();
   }
 
-  try {
-    if (getApps().length === 0) {
-      app = initializeApp(firebaseConfig);
-    } else {
-      app = getApp();
-    }
-
-    auth = getAuth(app);
-    googleAuthProvider = new GoogleAuthProvider();
-  } catch (error) {
-    console.error("Error initializing Firebase app or Auth services:", error);
-    // Set to null if any part of the initialization fails even if API key was present
-    app = null;
-    auth = null;
-    googleAuthProvider = null;
-  }
+  auth = getAuth(app);
+  googleAuthProvider = new GoogleAuthProvider();
+} catch (error) {
+  console.error("CRITICAL_ERROR: Failed to initialize Firebase with the provided configuration:", error);
+  // In a scenario where Firebase fails to initialize even with hardcoded values,
+  // we might still want to set these to null or handle the error gracefully,
+  // but for now, we'll assume initialization will succeed if config is valid.
+  // This part might need more robust error handling if init still fails.
+  throw new Error("Firebase initialization failed. Check the console for details.");
 }
 
 // If you need Firestore:
-// const db = app ? getFirestore(app) : null; // Example for Firestore
+// const db = getFirestore(app); // Example for Firestore
 
 export { app, auth, googleAuthProvider /*, db */ };
