@@ -2,9 +2,10 @@
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for generating physics explanations.
+ * @fileOverview This file defines a Genkit flow for a Physics Agent.
+ * This agent is specialized in generating explanations for physics-related questions and can utilize tools to look up physical constants.
  *
- * - generatePhysicsExplanation - A function that takes a physics question as input and returns a clear and concise explanation.
+ * - generatePhysicsExplanation - A function that takes a physics question as input and returns a clear and concise explanation from the Physics Agent.
  * - GeneratePhysicsExplanationInput - The input type for the generatePhysicsExplanation function.
  * - GeneratePhysicsExplanationOutput - The return type for the generatePhysicsExplanation function.
  */
@@ -62,7 +63,7 @@ const generatePhysicsExplanationPrompt = ai.definePrompt({
   input: {schema: GeneratePhysicsExplanationInputSchema},
   output: {schema: GeneratePhysicsExplanationOutputSchema},
   tools: [physicsConstantsTool], // Make the tool available
-  prompt: `You are an expert physics tutor. Please provide a clear and concise explanation of the following physics question.
+  prompt: `You are an expert physics tutor (Physics Agent). Please provide a clear and concise explanation of the following physics question.
   If the question involves or requires specific physical constants (e.g., speed of light, Planck constant), use the 'physicsConstantsLookup' tool to fetch their values and units.
   Clearly state any constants used and their values obtained from the tool in your explanation.
 
@@ -82,3 +83,4 @@ const generatePhysicsExplanationFlow = ai.defineFlow(
     return output!;
   }
 );
+
