@@ -31,6 +31,31 @@ TutorVerse is a friendly and interactive AI-powered learning assistant designed 
 *   **Icons**:
     *   [Lucide React](https://lucide.dev/)
 
+## 🧠 Multi-Agent Architecture Design & Principles
+
+TutorVerse is built upon a multi-agent architecture, drawing inspiration from design principles seen in frameworks like Google's Agent Development Kit (ADK) and similar systems. This approach emphasizes modularity, specialized expertise, and tool utilization.
+
+*   **Agent Composition & Communication (Orchestration)**:
+    *   **Main Agent (Tutor Agent)**: The primary interface for the user is the Tutor Agent, implemented within `src/app/actions.ts` (specifically the `processUserQuery` function). It receives the student's natural language query.
+    *   **Intent Recognition**: The Tutor Agent first communicates with an **Intent Recognition Agent** (the `recognizeIntent` flow in `src/ai/flows/recognize-intent.ts`). This specialized agent analyzes the query to determine its subject matter (e.g., "math," "physics," or "other").
+    *   **Delegation to Specialist Sub-Agents**: Based on the recognized intent, the Tutor Agent intelligently delegates the query to the appropriate specialist sub-agent:
+        *   **Math Agent**: Handles math-related questions (the `generateMathResponse` flow in `src/ai/flows/generate-math-response.ts`).
+        *   **Physics Agent**: Handles physics-related questions (the `generatePhysicsExplanation` flow in `src/ai/flows/generate-physics-explanation.ts`).
+    *   This hierarchical structure demonstrates agent composition, where the main agent orchestrates various sub-capabilities. Communication paths are clearly defined for query routing and response aggregation.
+
+*   **Tool Utilization by Specialist Agents**:
+    A core principle of effective AI agents is their ability to use tools to augment their capabilities.
+    *   The **Math Agent** utilizes a `calculatorTool` to perform arithmetic calculations. This allows it to solve mathematical expressions accurately or verify steps in a problem-solving process.
+    *   The **Physics Agent** employs a `physicsConstantsTool` to look up values of common physical constants (e.g., speed of light, Planck constant). This ensures accuracy and enriches its explanations.
+    *   Genkit's `ai.defineTool(...)` is used to define these tools, which are then made available to the respective agent prompts, enabling the LLM to decide when and how to use them.
+
+*   **Modularity & Specialization**:
+    *   Each agent (intent recognizer, math expert, physics expert) and their tools are encapsulated in separate, modular files (primarily within the `src/ai/flows/` directory).
+    *   This promotes a clear separation of concerns, making the system easier to understand, maintain, and extend. For example, a new subject expert (e.g., a Chemistry Agent) could be added with minimal disruption to existing agents.
+    *   Genkit's `ai.defineFlow(...)` helps structure these individual agent capabilities.
+
+This architecture allows TutorVerse to handle diverse queries effectively by routing them to agents with the specific knowledge and tools required for the task.
+
 ## ⚙️ Setup & Installation
 
 1.  **Clone the Repository**:
@@ -48,7 +73,7 @@ TutorVerse is a friendly and interactive AI-powered learning assistant designed 
 
 3.  **Google AI API Key for Genkit (CRITICAL FOR AI FEATURES)**:
     *   Genkit requires access to a Google AI model (like Gemini) for its AI capabilities.
-    *   **Current Setup (Development/Prototyping Only - API Key Hardcoded)**: The `GOOGLE_API_KEY` is currently hardcoded in `src/ai/genkit.ts`. This is done to simplify initial setup in environments where setting environment variables might be challenging.
+    *   **Current Setup (Development/Prototyping Only - API Key Hardcoded)**: The `GOOGLE_API_KEY` is currently hardcoded in `src/ai/genkit.ts`. This is done to simplify initial setup in environments where setting environment variables might be challenging. The specific key used is `AIzaSyBfJLoyQHy0NnxTSYQMOwV9D9eKbFY_xwc`.
     *   **SECURITY WARNING**: **For any production deployment or if sharing this code, you MUST remove the hardcoded API key and use environment variables.**
     *   **Recommended Setup (for Production/Secure Use)**:
         1.  Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to create an API key if you don't have one.
@@ -81,15 +106,6 @@ TutorVerse is a friendly and interactive AI-powered learning assistant designed 
     ```
     The Genkit UI is typically available at `http://localhost:4000`.
 
-## 🧠 Multi-Agent Architecture
-
-The core AI functionality is built around a multi-agent system:
-
-*   **Main Tutor Agent (`src/app/actions.ts`)**: Receives the user's query and uses an intent recognition flow (`src/ai/flows/recognize-intent.ts`) to determine if the query is related to "math," "physics," or "other."
-*   **Math Agent (`src/ai/flows/generate-math-response.ts`)**: Handles math questions. It uses a `calculatorTool` to perform arithmetic calculations.
-*   **Physics Agent (`src/ai/flows/generate-physics-explanation.ts`)**: Handles physics questions. It uses a `physicsConstantsTool` to look up values of physical constants.
-*   **Orchestration**: The Tutor Agent delegates the query to the appropriate specialist agent and returns the response to the user.
-
 ## 🎨 UI and Styling
 
 *   The UI is built with **ShadCN UI** components, providing a set of accessible and customizable building blocks.
@@ -111,3 +127,4 @@ This project uses **Genkit**, an open-source framework from Google, to build AI-
 
 Made with ❤️ by Nishant Shukla.
 TutorVerse can make mistakes. Consider checking important information.
+
