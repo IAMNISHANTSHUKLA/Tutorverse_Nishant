@@ -16,22 +16,40 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogIn, LogOut, User as UserIcon, Settings, LayoutDashboard } from 'lucide-react'; 
+import { LogIn, LogOut, User as UserIcon, Settings, LayoutDashboard, AlertTriangle } from 'lucide-react'; 
 import { Skeleton } from './ui/skeleton';
-// import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip'; // No longer needed for config error
-// import { AlertTriangle } from 'lucide-react'; // No longer needed for config error
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+
 
 export function AuthStatus() {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, isLoading, signOut, isFirebaseConfigured } = useAuth();
   const router = useRouter();
 
   const handleSignOut = async () => {
     await signOut();
-    router.push('/signin'); // Optionally redirect to sign-in after sign-out
+    router.push('/signin'); 
   };
 
   if (isLoading) {
     return <Skeleton className="h-10 w-24 rounded-md" />;
+  }
+
+  if (!isFirebaseConfigured) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" className="border-destructive text-destructive hover:bg-destructive/10 cursor-not-allowed" disabled>
+              <AlertTriangle className="mr-2 h-4 w-4" />
+              Auth Offline
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Authentication system is not configured. Please check console.</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
   }
 
   if (!user) {

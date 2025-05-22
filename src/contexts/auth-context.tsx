@@ -5,13 +5,13 @@
 import type * as React from 'react';
 import { createContext, useContext, useEffect, useState } from 'react';
 import { type User, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth, googleAuthProvider } from '@/lib/firebase/config'; // auth should now be initialized directly
+import { auth, googleAuthProvider } from '@/lib/firebase/config'; // auth can now be null
 import { useToast } from '@/hooks/use-toast';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  // isFirebaseConfigured is effectively always true now with hardcoded config
+  isFirebaseConfigured: boolean; // New state to indicate if Firebase auth is usable
   signInWithGoogle: () => Promise<User | null>;
   signOut: () => Promise<void>;
 }
@@ -21,19 +21,43 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Check if Firebase auth object from config is available
+  const isFirebaseConfigured = !!auth && !!googleAuthProvider; 
   const { toast } = useToast();
 
   useEffect(() => {
-    // Firebase is now initialized directly in config.ts
-    // So, 'auth' should be available.
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    if (!isFirebaseConfigured) {
+      console.warn("AuthContext: Firebase is not configured. Authentication will be disabled.");
+      setIsLoading(false);
+      setUser(null);
+      // Optionally, show a persistent warning to the user or developer
+      // toast({
+      //   title: "Authentication System Offline",
+      //   description: "Firebase is not configured correctly. Please check console.",
+      //   variant: "destructive",
+      //   duration: Infinity
+      // });
+      return;
+    }
+
+    // If Firebase is configured, proceed with onAuthStateChanged
+    const unsubscribe = onAuthStateChanged(auth!, (currentUser) => { // auth! is safe here due to isFirebaseConfigured check
       setUser(currentUser);
       setIsLoading(false);
     });
     return () => unsubscribe();
-  }, []);
+  }, [isFirebaseConfigured, toast]);
 
   const signInWithGoogle = async (): Promise<User | null> => {
+    if (!isFirebaseConfigured || !auth || !googleAuthProvider) {
+      toast({
+        title: "Sign-In Unavailable",
+        description: "Authentication system is not configured. Please contact support or check console.",
+        variant: "destructive",
+      });
+      return null;
+    }
+
     setIsLoading(true);
     try {
       const result = await signInWithPopup(auth, googleAuthProvider);
@@ -47,8 +71,12 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
         errorMessage = "Sign-in popup was closed. Please try again.";
       } else if (error.code === 'auth/cancelled-popup-request') {
         errorMessage = "Sign-in was cancelled. Please try again if this was a mistake.";
+      } else if (error.code === 'auth/popup-blocked') {
+        errorMessage = "Sign-in popup was blocked by the browser. Please allow popups for this site.";
+      } else if (error.code === 'auth/operation-not-allowed') {
+        errorMessage = "Google Sign-In is not enabled for this project. Please check Firebase console.";
       } else if (error.message) {
-        errorMessage = error.message;
+        errorMessage = `Sign-in failed: ${error.message}`;
       }
       toast({
         title: "Sign-in Error",
@@ -63,6 +91,14 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   const signOut = async () => {
+    if (!isFirebaseConfigured || !auth) {
+      toast({
+        title: "Sign-Out Unavailable",
+        description: "Authentication system is not configured.",
+        variant: "destructive",
+      });
+      return;
+    }
     setIsLoading(true);
     try {
       await firebaseSignOut(auth);
@@ -81,7 +117,7 @@ export const AuthProvider: React.FC<{children: React.ReactNode}> = ({ children }
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, signInWithGoogle, signOut }}>
+    <AuthContext.Provider value={{ user, isLoading, isFirebaseConfigured, signInWithGoogle, signOut }}>
       {children}
     </AuthContext.Provider>
   );
