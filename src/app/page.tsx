@@ -5,7 +5,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link'; // Keep Link for the header logo
-import { SendHorizonal, MessageSquareDashed, Sparkles, BookOpen, Lightbulb } from 'lucide-react';
+import { SendHorizonal, Sparkles, BookOpen, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -123,8 +123,12 @@ export default function HomePage() {
         <p className="text-lg md:text-xl text-foreground mb-6">
           TutorVerse is your fun, AI-powered pal for mastering Math and Physics. Let's learn something new today!
         </p>
-        <Button size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full shadow-lg px-6 sm:px-10 py-4 sm:py-7 text-xl font-semibold transform hover:scale-105 transition-transform mt-6" onClick={() => inputRef.current?.focus()}>
-           Ask Your First Question!
+        <Button
+          size="lg"
+          className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full shadow-lg px-6 sm:px-10 py-4 sm:py-7 text-xl font-semibold transform hover:scale-105 transition-transform mt-6"
+          onClick={() => inputRef.current?.focus()}
+        >
+           Start Your Adventure!
         </Button>
       </div>
     </div>
@@ -169,6 +173,7 @@ export default function HomePage() {
             TutorVerse
           </h1>
         </Link>
+        {/* AuthStatus removed as authentication is no longer part of the app */}
       </header>
 
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -188,12 +193,6 @@ export default function HomePage() {
               ))}
               <div ref={messagesEndRef} />
             </div>
-
-            {/* The MessageSquareDashed prompt for an empty chat has been removed
-                as the WelcomeSection now serves as the primary initial guide.
-                If messages were empty (e.g., after clearing, which isn't a feature yet),
-                a different empty state could be considered here.
-            */}
           </ScrollArea>
 
           <footer className="p-4 border-t border-border/70 bg-background/85 sticky bottom-0 backdrop-blur-sm">
@@ -228,3 +227,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    

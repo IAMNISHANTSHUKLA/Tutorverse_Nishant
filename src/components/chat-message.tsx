@@ -1,3 +1,4 @@
+
 // src/components/chat-message.tsx
 "use client";
 
@@ -18,16 +19,15 @@ export interface Message {
 
 // Component to display an icon based on the message intent.
 const IntentIcon: React.FC<{ intent?: Message['intent'] }> = ({ intent }) => {
-  // Using PRD colors: Teal (primary), Orange (accent)
-  // Math: Blue (distinct subject color)
-  // Physics: Green (distinct subject color)
   switch (intent) {
     case 'math':
-      return <Brain className="h-5 w-5 text-blue-500" />; 
+      // Using a distinct color for Math, not directly from primary/accent for subject differentiation
+      return <Brain className="h-5 w-5 text-blue-500" />;
     case 'physics':
-      return <Atom className="h-5 w-5 text-green-500" />; 
+      // Using a distinct color for Physics
+      return <Atom className="h-5 w-5 text-green-500" />;
     case 'error':
-      return <AlertCircle className="h-5 w-5 text-destructive" />; 
+      return <AlertCircle className="h-5 w-5 text-destructive" />;
     case 'greeting':
       return <Sparkles className="h-5 w-5 text-primary" />; // Teal for greeting
     case 'other':
@@ -40,30 +40,30 @@ const IntentIcon: React.FC<{ intent?: Message['intent'] }> = ({ intent }) => {
 // Component to display the name of the AI agent based on intent.
 const AgentName: React.FC<{ intent?: Message['intent'] }> = ({ intent }) => {
   let name = "TutorVerse";
-  let className = "font-semibold text-primary"; // Default to Teal
+  let nameClass = "font-semibold text-primary"; // Default to Teal
 
   switch (intent) {
     case 'math':
       name = "Math Whiz";
-      className = "font-semibold text-blue-600"; // Keeping blue for Math differentiation
+      nameClass = "font-semibold text-blue-600"; // Blue for Math
       break;
     case 'physics':
       name = "Physics Pro";
-      className = "font-semibold text-green-600"; // Keeping green for Physics differentiation
+      nameClass = "font-semibold text-green-600"; // Green for Physics
       break;
     case 'error':
       name = "Oops!";
-      className = "font-semibold text-destructive";
+      nameClass = "font-semibold text-destructive";
       break;
     // Greeting and Other will use the default "TutorVerse" and primary color
   }
-  return <span className={cn("text-sm", className)}>{name}</span>;
+  return <span className={cn("text-sm", nameClass)}>{name}</span>;
 };
 
 
 // Component for the typing indicator animation.
 const TypingIndicator = () => (
-  <div className="typing-indicator flex space-x-1.5 items-center h-5 text-primary"> {/* Typing indicator uses primary color */}
+  <div className="typing-indicator flex space-x-1.5 items-center h-5 text-primary"> {/* Typing indicator uses primary color (Teal) */}
     <span className="h-2 w-2 bg-current rounded-full"></span>
     <span className="h-2 w-2 bg-current rounded-full"></span>
     <span className="h-2 w-2 bg-current rounded-full"></span>
@@ -92,7 +92,7 @@ export const ChatMessage: React.FC<Message> = ({ role, content, intent, isLoadin
       )}
       <Card className={cn(
         'max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl rounded-2xl shadow-lg transition-all duration-300 ease-out transform group-hover:scale-[1.01]',
-        isUser 
+        isUser
           ? 'bg-gradient-to-br from-accent to-orange-400 text-accent-foreground rounded-br-md' // User message is Orange
           : 'bg-card text-card-foreground rounded-bl-md border-2 border-primary/20' // Assistant uses card, border is Teal
       )}>
@@ -126,3 +126,5 @@ export const ChatMessage: React.FC<Message> = ({ role, content, intent, isLoadin
     </div>
   );
 };
+
+    

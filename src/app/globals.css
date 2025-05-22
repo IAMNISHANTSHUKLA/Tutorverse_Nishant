@@ -1,11 +1,12 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* TutorVerse Theme: Teal, Light Yellow, Orange */
-    --background: 60 100% 94%; /* Light Yellow (#FFFFE0) */
+    /* TutorVerse Theme: Light Yellow, Cheerful Teal, Bright Orange */
+    --background: 48 100% 94%; /* Light Yellow (#FFFFE0) hsl(60, 100%, 94%) - slightly off-white for better contrast */
     --foreground: 180 60% 18%; /* Dark Teal - for text on light yellow */
 
     --card: 0 0% 100%; /* White */
@@ -16,12 +17,11 @@
 
     --primary: 180 100% 25%; /* Cheerful Teal (#008080) */
     --primary-foreground: 0 0% 100%; /* White - for text on Teal */
-    
-    /* Using Orange as Accent, and a Muted Teal as Secondary */
+
     --secondary: 180 50% 45%; /* Muted Teal */
     --secondary-foreground: 0 0% 100%; /* White */
 
-    --muted: 60 80% 88%; /* Lighter/Muted Yellow */
+    --muted: 50 90% 88%; /* Lighter/Muted Yellow, slightly more saturated */
     --muted-foreground: 180 40% 35%; /* Muted Teal for less emphasis text */
 
     --accent: 39 100% 50%; /* Bright Orange (#FFA500) */
@@ -31,66 +31,68 @@
     --destructive-foreground: 0 0% 98%; /* Light text for destructive */
 
     --border: 180 50% 80%; /* Light Tealish border */
-    --input: 0 0% 100%; /* White for input background */
+    --input: 0 0% 100%; /* White for input background for better contrast on yellow */
     --ring: 180 100% 30%; /* Teal for focus rings */
 
     --radius: 0.75rem; /* Slightly more rounded for a softer feel */
 
-    /* Chart colors can be adjusted if needed, keeping some variety */
+    /* Chart colors (can be adjusted if charts are added) */
     --chart-1: 180 70% 50%; /* Tealish Blue */
     --chart-2: 39 90% 60%;  /* Bright Orange */
     --chart-3: 210 70% 65%; /* Complementary Blue/Purple */
     --chart-4: 45 95% 55%;  /* Sunny Yellow (different from background) */
     --chart-5: 350 80% 60%; /* Coral Pink */
 
-    /* Sidebar colors based on the new theme */
-    --sidebar-background: 180 70% 20%; /* Deeper Teal for sidebar */
-    --sidebar-foreground: 0 0% 98%; /* Light text */
-    --sidebar-primary: 39 100% 55%; /* Orange for sidebar primary actions */
-    --sidebar-primary-foreground: 0 0% 100%; /* White */
-    --sidebar-accent: 180 70% 15%; /* Darker Teal for sidebar accent */
+    /* Sidebar colors (if a sidebar were to be added, adjust based on theme) */
+    --sidebar-background: 180 70% 20%; /* Deeper Teal */
+    --sidebar-foreground: 0 0% 98%;
+    --sidebar-primary: 39 100% 55%; /* Orange for sidebar primary */
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 180 70% 15%;
     --sidebar-accent-foreground: 0 0% 98%;
     --sidebar-border: 180 70% 15%;
     --sidebar-ring: 39 100% 55%;
   }
 
   .dark {
-    /* Dark Theme adjustments for TutorVerse: Teal, Dark Yellow/Brown, Orange */
-    --background: 180 15% 10%; /* Dark Teal/Navy */
-    --foreground: 60 70% 85%; /* Light Yellowish/Cream text */
-    
-    --card: 180 15% 15%; /* Slightly Lighter Dark Teal for cards */
-    --card-foreground: 60 70% 85%;
-    
-    --popover: 180 15% 12%; /* Darker popover */
-    --popover-foreground: 60 70% 85%;
-    
-    --primary: 180 80% 45%; /* Vivid Teal */
-    --primary-foreground: 180 100% 10%; /* Very Dark Teal for text on primary */
-    
-    --secondary: 180 40% 30%; /* Muted Dark Teal */
-    --secondary-foreground: 60 70% 85%; /* Light Yellowish */
+    /* Dark Theme adjustments: Dark Teal, Dark Yellow/Brown, Orange */
+    --background: 180 20% 10%; /* Dark Teal/Navy base */
+    --foreground: 50 80% 85%; /* Light Yellowish/Cream text */
 
-    --muted: 180 15% 20%; /* Darker Muted Teal/Navy */
-    --muted-foreground: 180 25% 65%; /* Lighter Muted Teal */
-    
+    --card: 180 20% 15%; /* Slightly Lighter Dark Teal for cards */
+    --card-foreground: 50 80% 85%;
+
+    --popover: 180 20% 12%; /* Darker popover */
+    --popover-foreground: 50 80% 85%;
+
+    --primary: 180 80% 45%; /* Vivid Teal for primary actions */
+    --primary-foreground: 180 100% 10%; /* Very Dark Teal for text on primary */
+
+    --secondary: 180 40% 30%; /* Muted Dark Teal */
+    --secondary-foreground: 50 80% 85%;
+
+    --muted: 180 15% 20%; /* Darker Muted Teal/Navy for muted backgrounds */
+    --muted-foreground: 180 25% 65%; /* Lighter Muted Teal for muted text */
+
     --accent: 39 90% 55%; /* Bright Orange */
     --accent-foreground: 0 0% 10%; /* Dark text for orange */
-    
+
     --destructive: 0 60% 50%; /* Darker, less saturated Red */
     --destructive-foreground: 0 0% 95%;
-    
+
     --border: 180 15% 25%; /* Muted Teal/Navy Border */
     --input: 180 15% 18%; /* Dark Input Background */
-    --ring: 180 80% 50%; /* Bright Teal for focus */
+    --ring: 180 80% 50%; /* Bright Teal for focus rings */
+
+    --radius: 0.75rem;
 
     /* Sidebar dark theme */
     --sidebar-background: 180 10% 8%;
-    --sidebar-foreground: 60 70% 85%;
+    --sidebar-foreground: 50 80% 85%;
     --sidebar-primary: 180 80% 45%;
     --sidebar-primary-foreground: 180 100% 10%;
     --sidebar-accent: 180 10% 12%;
-    --sidebar-accent-foreground: 60 70% 85%;
+    --sidebar-accent-foreground: 50 80% 85%;
     --sidebar-border: 180 10% 12%;
     --sidebar-ring: 39 90% 55%;
   }
@@ -102,7 +104,7 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-geist-sans); /* Using Geist Sans as per existing setup */
+    font-family: var(--font-geist-sans);
   }
   /* Add a subtle text shadow for better readability on hero image if needed */
   .text-shadow {
@@ -116,7 +118,7 @@
 /* Typing indicator animation for chat messages */
 .typing-indicator span {
   animation: blink 1.4s infinite both;
-  display: inline-block; 
+  display: inline-block;
 }
 .typing-indicator span:nth-child(2) {
   animation-delay: 0.2s;
@@ -129,3 +131,5 @@
   20% { opacity: 1; }
   100% { opacity: 0.2; }
 }
+
+    
