@@ -1,10 +1,11 @@
+
 // src/app/page.tsx
 'use client';
 
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SendHorizonal, MessageSquareDashed, Sparkles, ArrowRight, UserCheck, Star, Rocket } from 'lucide-react';
+import { SendHorizonal, MessageSquareDashed, Sparkles, ArrowRight, Star, Rocket, Terminal, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -13,8 +14,9 @@ import { LogoIcon } from '@/components/icons/logo';
 import { processUserQuery } from './actions';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AuthStatus } from '@/components/auth-components'; // Import AuthStatus
-import { useAuth } from '@/contexts/auth-context'; // Import useAuth
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AuthStatus } from '@/components/auth-components'; 
+import { useAuth } from '@/contexts/auth-context'; 
 
 /**
  * HomePage component: Serves as the main interface for the TutorVerse application.
@@ -33,7 +35,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = React.useState(false);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const { user, isLoading: authIsLoading } = useAuth(); // Get user and auth loading state
+  const { user, isLoading: authIsLoading, isFirebaseConfigured } = useAuth();
 
   // Scroll to the bottom of the chat messages when new messages are added.
   const scrollToBottom = () => {
@@ -53,6 +55,14 @@ export default function HomePage() {
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!query.trim() || isLoading) return;
+
+    // If Firebase is not configured and user tries to send a message (and not logged in)
+    if (!isFirebaseConfigured && !user) {
+        // Optionally, you could show a toast here too, or just rely on the disabled input
+        console.warn("Attempted to send message, but Firebase is not configured and user is not logged in.");
+        return;
+    }
+
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -101,9 +111,9 @@ export default function HomePage() {
 
   // Welcome section with conditional rendering based on auth state
   const WelcomeSection = () => (
-    <div className="relative w-full h-auto md:h-[calc(100vh-280px)] min-h-[300px] rounded-lg overflow-hidden shadow-xl mb-8 flex items-center justify-center p-4">
+    <div className="relative w-full h-auto md:h-[calc(100vh-320px)] min-h-[300px] rounded-lg overflow-hidden shadow-xl mb-8 flex items-center justify-center p-4">
       <Image
-        src="https://placehold.co/1200x600/E0F2FE/0EA5E9?text=Welcome+Explorers!" // Cheerful placeholder
+        src="https://placehold.co/1200x600/FEF3C7/F97316?text=Welcome+Explorers!" 
         alt="Friendly learning environment with kids and abstract shapes"
         layout="fill"
         objectFit="cover"
@@ -120,14 +130,14 @@ export default function HomePage() {
         <p className="text-lg md:text-xl text-foreground mb-6">
           Your amazing AI-powered adventure in Math and Physics starts right here. Ask questions, explore concepts, and unlock your inner genius!
         </p>
-        {!authIsLoading && !user && (
+        {!authIsLoading && !user && isFirebaseConfigured && (
           <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 shadow-lg transform hover:scale-105 transition-transform">
             <Link href="/signin">
               Join the Adventure! <ArrowRight className="ml-2 h-5 w-5" />
             </Link>
           </Button>
         )}
-        {user && (
+         {user && (
            <p className="text-xl font-semibold text-secondary">Ready to explore, {user.displayName || 'Explorer'}?</p>
         )}
       </div>
@@ -137,7 +147,7 @@ export default function HomePage() {
   // Feature cards
   const FeatureCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 px-4">
-      <Card className="hover:shadow-lg transition-shadow duration-300">
+      <Card className="hover:shadow-lg transition-shadow duration-300 bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center text-primary"><Sparkles className="mr-2 h-6 w-6 text-accent" />AI-Powered Tutoring</CardTitle>
         </CardHeader>
@@ -145,7 +155,7 @@ export default function HomePage() {
           <CardDescription>Get instant help with tricky math and physics problems from our smart AI tutors.</CardDescription>
         </CardContent>
       </Card>
-      <Card className="hover:shadow-lg transition-shadow duration-300">
+      <Card className="hover:shadow-lg transition-shadow duration-300 bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center text-primary"><Rocket className="mr-2 h-6 w-6 text-accent" />Explore & Discover</CardTitle>
         </CardHeader>
@@ -153,7 +163,7 @@ export default function HomePage() {
           <CardDescription>Dive deep into concepts, ask "what if" questions, and satisfy your curiosity.</CardDescription>
         </CardContent>
       </Card>
-      <Card className="hover:shadow-lg transition-shadow duration-300">
+      <Card className="hover:shadow-lg transition-shadow duration-300 bg-card/80 backdrop-blur-sm">
         <CardHeader>
           <CardTitle className="flex items-center text-primary"><Star className="mr-2 h-6 w-6 text-accent" />Fun & Engaging</CardTitle>
         </CardHeader>
@@ -166,38 +176,51 @@ export default function HomePage() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-muted/50">
-      <header className="p-4 border-b border-border flex items-center justify-between sticky top-0 bg-background/95 backdrop-blur-md z-20 shadow-md">
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-muted/30"> {/* Lightened gradient */}
+      <header className="p-4 border-b border-border/70 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-md z-20 shadow-md">
         <Link href="/" className="flex items-center space-x-3">
           <LogoIcon className="h-10 w-10 text-primary" />
           <h1 className="text-3xl font-bold text-primary flex items-center">
             TutorVerse
           </h1>
         </Link>
-        <AuthStatus /> {/* AuthStatus component for sign-in/out and user avatar */}
+        <AuthStatus /> 
       </header>
       
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 flex flex-col p-0 md:p-4">
           <ScrollArea className="flex-1" id="message-scroll-area">
             <div className="p-4 md:p-6 space-y-6">
-              {/* Display welcome section only if no user messages yet (besides initial greeting) */}
-              {messages.length <= 1 && (
+              {!isFirebaseConfigured && (
+                <Alert variant="destructive" className="my-4 mx-auto max-w-2xl">
+                  <AlertTriangle className="h-5 w-5" />
+                  <AlertTitle>Firebase Configuration Error!</AlertTitle>
+                  <AlertDescription>
+                    The application is not properly configured to connect with Firebase.
+                    Authentication and other related features will be unavailable.
+                    Please ensure `NEXT_PUBLIC_FIREBASE_API_KEY` and other Firebase environment variables are correctly set.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Display welcome section only if no user messages yet (besides initial greeting) AND Firebase is configured or user is already present */}
+              {messages.length <= 1 && (isFirebaseConfigured || user) && (
                 <>
                   <WelcomeSection />
-                  {!user && !authIsLoading && <FeatureCards />}
+                  {/* Show feature cards if not logged in AND firebase is configured (otherwise sign in button won't work) */}
+                  {!user && !authIsLoading && isFirebaseConfigured && <FeatureCards />}
                 </>
               )}
               
-              {/* Display chat messages if there are more than the initial greeting OR if user is logged in */}
-              {(messages.length > 1 || (user && !authIsLoading)) && messages.map((msg) => (
+              {/* Display chat messages if there are more than the initial greeting OR if user is logged in (and firebase is configured) */}
+              { (messages.length > 1 || (user && !authIsLoading && isFirebaseConfigured)) && messages.map((msg) => (
                 <ChatMessage key={msg.id} {...msg} />
               ))}
               <div ref={messagesEndRef} />
             </div>
 
             {/* Initial placeholder for chat if user is logged in and only greeting message exists */}
-            {user && !authIsLoading && messages.length === 1 && messages[0].intent === 'greeting' && (
+            {user && !authIsLoading && isFirebaseConfigured && messages.length === 1 && messages[0].intent === 'greeting' && (
               <div className="flex flex-col items-center justify-center text-center p-10 text-muted-foreground mt-8">
                 <MessageSquareDashed className="w-20 h-20 mb-6 text-primary/70" />
                 <p className="text-xl font-semibold text-foreground">Ask me anything about Math or Physics!</p>
@@ -206,25 +229,31 @@ export default function HomePage() {
             )}
           </ScrollArea>
 
-          {/* Chat input footer - show only if user is logged in or if it's not the initial welcome screen for logged-out users */}
-          { (user || messages.length > 1 || authIsLoading) && (
-            <footer className="p-4 border-t border-border bg-background/90 sticky bottom-0 backdrop-blur-sm">
+          {/* Chat input footer - show only if Firebase is configured OR if already showing messages beyond welcome */}
+          { (isFirebaseConfigured || messages.length > 1 ) && (
+            <footer className="p-4 border-t border-border/70 bg-background/85 sticky bottom-0 backdrop-blur-sm">
               <form onSubmit={handleFormSubmit} className="flex items-center space-x-3">
                 <Input
                   ref={inputRef}
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder={user ? "Type your question here, explorer!" : "Sign in to ask questions!"}
+                  placeholder={
+                    !isFirebaseConfigured 
+                      ? "Auth not configured. Cannot send messages." 
+                      : user 
+                        ? "Type your question here, explorer!" 
+                        : "Sign in to ask questions!"
+                  }
                   className="flex-1 rounded-full px-6 py-4 text-base focus-visible:ring-primary shadow-inner"
-                  disabled={isLoading || (!user && !authIsLoading)} // Disable if not signed in and not in auth loading state
+                  disabled={isLoading || !isFirebaseConfigured || (!user && !authIsLoading)} 
                   aria-label="Your question"
                 />
                 <Button
                   type="submit"
                   size="icon"
                   className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90 disabled:bg-muted shadow-lg transform hover:scale-105 transition-transform"
-                  disabled={isLoading || !query.trim() || (!user && !authIsLoading)} // Disable if not signed in and not in auth loading state
+                  disabled={isLoading || !query.trim() || !isFirebaseConfigured || (!user && !authIsLoading)}
                   aria-label="Send question"
                 >
                   <SendHorizonal className={cn("h-6 w-6", isLoading ? "animate-pulse" : "")} />
