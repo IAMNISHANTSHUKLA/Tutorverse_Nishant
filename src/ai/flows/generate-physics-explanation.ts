@@ -3,10 +3,10 @@
 
 /**
  * @fileOverview This file defines a Genkit flow for a Physics Agent (Physics Pro).
- * This agent is specialized in generating explanations for physics-related questions
- * and can utilize tools to look up physical constants.
+ * This agent is specialized in generating explanations for physics-related questions,
+ * can utilize tools to look up physical constants, and now considers conversation history for context.
  *
- * - generatePhysicsExplanation - A function that takes a physics question as input and returns a clear and concise explanation from the Physics Agent.
+ * - generatePhysicsExplanation - A function that takes a physics question and history, then returns an explanation.
  * - GeneratePhysicsExplanationInput - The input type for the generatePhysicsExplanation function.
  * - GeneratePhysicsExplanationOutput - The return type for the generatePhysicsExplanation function.
  */
@@ -15,10 +15,20 @@ import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
 /**
+ * Defines a schema for a single message in the conversation history.
+ */
+const MessageHistoryItemSchema = z.object({
+  role: z.enum(['user', 'assistant']).describe("The role of the speaker in this message (user or assistant)."),
+  content: z.string().describe("The text content of the message.")
+});
+
+/**
  * Defines the expected input schema for the physics explanation generation flow.
+ * Now includes conversation history.
  */
 const GeneratePhysicsExplanationInputSchema = z.object({
   physicsQuestion: z.string().describe('The physics question to be answered.'),
+  history: z.array(MessageHistoryItemSchema).optional().describe('The preceding conversation history, if any. The last message in history is the one immediately preceding the current question.')
 });
 export type GeneratePhysicsExplanationInput = z.infer<typeof GeneratePhysicsExplanationInputSchema>;
 
@@ -26,7 +36,7 @@ export type GeneratePhysicsExplanationInput = z.infer<typeof GeneratePhysicsExpl
  * Defines the expected output schema for the physics explanation generation flow.
  */
 const GeneratePhysicsExplanationOutputSchema = z.object({
-  explanation: z.string().describe('A clear and concise explanation of the physics question, including relevant formulas and constants obtained from tools.'),
+  explanation: z.string().describe('A clear and concise explanation of the physics question, including relevant formulas and constants obtained from tools, and considering conversation history.'),
 });
 export type GeneratePhysicsExplanationOutput = z.infer<typeof GeneratePhysicsExplanationOutputSchema>;
 
@@ -71,7 +81,7 @@ const physicsConstantsTool = ai.defineTool(
 
 /**
  * Publicly exported function that invokes the physics explanation generation flow.
- * @param {GeneratePhysicsExplanationInput} input - The physics question.
+ * @param {GeneratePhysicsExplanationInput} input - The physics question and conversation history.
  * @returns {Promise<GeneratePhysicsExplanationOutput>} The generated explanation.
  */
 export async function generatePhysicsExplanation(input: GeneratePhysicsExplanationInput): Promise<GeneratePhysicsExplanationOutput> {
@@ -80,27 +90,37 @@ export async function generatePhysicsExplanation(input: GeneratePhysicsExplanati
 
 /**
  * Defines the Genkit prompt for the Physics Agent.
- * This prompt instructs the LLM on how to behave as a physics tutor
- * and when to use the `physicsConstantsLookup` tool.
+ * This prompt instructs the LLM on how to behave as a physics tutor,
+ * when to use the `physicsConstantsLookup` tool, and how to use conversation history.
  */
 const generatePhysicsExplanationPrompt = ai.definePrompt({
   name: 'generatePhysicsExplanationPrompt',
   input: {schema: GeneratePhysicsExplanationInputSchema},
   output: {schema: GeneratePhysicsExplanationOutputSchema},
-  tools: [physicsConstantsTool], // Makes the tool available to this prompt.
+  tools: [physicsConstantsTool],
   prompt: `You are an expert physics tutor (Physics Pro). Please provide a clear and concise explanation of the following physics question.
-  If the question involves or requires specific physical constants (e.g., speed of light, Planck constant), use the 'physicsConstantsLookup' tool to fetch their values and units.
-  Clearly state any constants used and their values obtained from the tool in your explanation.
+Use the provided conversation history for context if needed.
+If the question involves or requires specific physical constants (e.g., speed of light, Planck constant), use the 'physicsConstantsLookup' tool to fetch their values and units.
+Clearly state any constants used and their values obtained from the tool in your explanation.
 
-Physics Question: {{{physicsQuestion}}}
+Conversation History (if any):
+{{#if history}}
+{{#each history}}
+{{role}}: {{{content}}}
+{{/each}}
+{{else}}
+No previous conversation history.
+{{/if}}
+
+Current Physics Question: {{{physicsQuestion}}}
 
 Explanation:`,
 });
 
 /**
  * Defines the Genkit flow for generating physics explanations.
- * This flow takes a physics question, invokes the Physics Agent prompt,
- * and returns the structured explanation.
+ * This flow takes a physics question and history, invokes the Physics Agent prompt,
+ * and returns the structured explanation. Includes fallback for null LLM output.
  */
 const generatePhysicsExplanationFlow = ai.defineFlow(
   {
@@ -108,10 +128,20 @@ const generatePhysicsExplanationFlow = ai.defineFlow(
     inputSchema: GeneratePhysicsExplanationInputSchema,
     outputSchema: GeneratePhysicsExplanationOutputSchema,
   },
-  async input => {
+  async (input): Promise<GeneratePhysicsExplanationOutput> => {
     const {output} = await generatePhysicsExplanationPrompt(input);
-    // Assume output will conform to schema if not null.
-    // Error handling for null output can be added if needed, similar to Math flow.
-    return output!;
+    
+    if (output === null) {
+      console.error(
+        `Physics explanation prompt for question "${input.physicsQuestion}" (with history) returned null output. ` +
+        `This means the LLM failed to generate a response that conforms to the expected schema. ` +
+        `Falling back to a default error message.`
+      );
+      return {
+        explanation: "I'm sorry, I wasn't able to generate an explanation for your physics question. " +
+                     "This might be due to the complexity or phrasing of the question, or an internal issue. Please try rephrasing or asking a different question."
+      };
+    }
+    return output;
   }
 );

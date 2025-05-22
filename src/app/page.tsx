@@ -5,7 +5,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SendHorizonal, Sparkles, BookOpen, Lightbulb } from 'lucide-react';
+import { SendHorizonal, Sparkles, BookOpen, Lightbulb, MessageSquareDashed } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -16,9 +16,17 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 
 /**
+ * Defines the structure of a message item specifically for sending history to the backend.
+ * This is a simplified version of the client-side `Message` type.
+ */
+export interface HistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+/**
  * HomePage component: Serves as the main interface for the TutorVerse application.
  * It includes a welcome section and a chat interface for users to interact with AI tutors.
- * Authentication has been removed; the chat is publicly accessible.
  */
 export default function HomePage() {
   const [query, setQuery] = React.useState('');
@@ -56,7 +64,7 @@ export default function HomePage() {
   /**
    * Handles the submission of the user's query via the chat form.
    * It adds the user's message and a loading indicator to the chat,
-   * then calls the `processUserQuery` server action to get the AI's response.
+   * then calls the `processUserQuery` server action with the current query and message history.
    * @param {React.FormEvent<HTMLFormElement>} event - The form submission event.
    */
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -68,22 +76,37 @@ export default function HomePage() {
       role: 'user',
       content: query,
     };
-    const loadingMessageId = (Date.now() + 1).toString(); // Unique ID for loading message
+    const loadingMessageId = (Date.now() + 1).toString();
     const loadingMessage: Message = {
       id: loadingMessageId,
       role: 'assistant',
-      content: 'Thinking...', // This will be replaced by the TypingIndicator via ChatMessage component
+      content: 'Thinking...',
       isLoading: true,
     };
+
+    // Prepare history: map client messages to the simpler HistoryMessage structure.
+    // We only send string content for history.
+    const historyForBackend: HistoryMessage[] = messages
+      .filter(msg => typeof msg.content === 'string' && !msg.isLoading) // Exclude loading messages and non-string content from history
+      .map(msg => ({
+        role: msg.role,
+        content: msg.content as string, // Already filtered for string
+      }));
+    
+    // Add current user message to history being sent if it's not empty
+    if (userMessage.content.trim()) {
+        historyForBackend.push({ role: 'user', content: userMessage.content as string });
+    }
 
     setMessages((prevMessages) => [...prevMessages, userMessage, loadingMessage]);
     setQuery('');
     setIsLoading(true);
 
     try {
-      const result = await processUserQuery(userMessage.content as string);
+      // Pass the current query and the prepared history
+      const result = await processUserQuery(userMessage.content as string, historyForBackend);
       const assistantMessage: Message = {
-        id: loadingMessageId, // Use the same ID to replace the loading message
+        id: loadingMessageId,
         role: 'assistant',
         content: result.text,
         intent: result.intent,
@@ -97,7 +120,7 @@ export default function HomePage() {
         ? `Oh no! Something went a bit wobbly. Please try asking again. (Details: ${error.message})`
         : 'Oh no! Something went a bit wobbly. Please try asking again.';
       const errorMessage: Message = {
-        id: loadingMessageId, // Use the same ID to replace the loading message
+        id: loadingMessageId,
         role: 'assistant',
         content: errorMessageContent,
         intent: 'error',
@@ -107,7 +130,6 @@ export default function HomePage() {
       );
     } finally {
       setIsLoading(false);
-      // Re-focus the input field after processing is complete.
       if (inputRef.current) {
         setTimeout(() => inputRef.current?.focus(), 0);
       }
@@ -121,12 +143,12 @@ export default function HomePage() {
   const WelcomeSection = () => (
     <div className="relative w-full h-auto md:h-[calc(100vh-400px)] min-h-[400px] rounded-lg overflow-hidden shadow-xl mb-10 flex items-center justify-center p-4 bg-secondary/10">
       <Image
-        src="https://placehold.co/1200x600.png" // Generic placeholder, colors are theme-dependent
+        src="https://placehold.co/1200x600/FFFFE0/008080" // Placeholder reflecting theme: Light Yellow bg, Teal text/elements
         alt="A cheerful and inviting learning environment with abstract educational icons"
         fill
         style={{ objectFit: "cover" }}
         data-ai-hint="education learning kids"
-        className="opacity-20" // Soften the background image
+        className="opacity-20"
       />
       <div className="relative z-10 text-center p-6 md:p-10 bg-background/80 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl mx-auto">
         <div className="flex justify-center mb-6">
@@ -141,7 +163,7 @@ export default function HomePage() {
         <Button
           size="lg"
           className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full shadow-lg px-6 sm:px-10 py-4 sm:py-7 text-xl font-semibold transform hover:scale-105 transition-transform mt-6"
-          onClick={() => inputRef.current?.focus()} // Focus input on click
+          onClick={() => inputRef.current?.focus()}
         >
            Ask Your First Question!
         </Button>
@@ -182,9 +204,11 @@ export default function HomePage() {
     </div>
   );
 
+  // Determine if it's the very first interaction (only initial greeting message)
+  const isInitialGreeting = messages.length === 1 && messages[0].intent === 'greeting';
+
   return (
     <div className="flex flex-col min-h-screen bg-background">
-      {/* Header section with logo and app title */}
       <header className="p-4 border-b border-border/70 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-md z-20 shadow-md">
         <Link href="/" className="flex items-center space-x-3">
           <LogoIcon className="h-10 w-10 text-primary" />
@@ -192,31 +216,26 @@ export default function HomePage() {
             TutorVerse
           </h1>
         </Link>
-        {/* Authentication status components have been removed */}
       </header>
 
-      {/* Main content area, including chat messages and input form */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 flex flex-col p-0 md:p-4">
           <ScrollArea className="flex-1" id="message-scroll-area">
             <div className="p-4 md:p-6 space-y-6">
-              {/* Show WelcomeSection and FeatureCards only if it's the initial greeting message */}
-              {messages.length === 1 && messages[0].intent === 'greeting' && (
+              {isInitialGreeting && (
                 <>
                   <WelcomeSection />
                   <FeatureCards />
                 </>
               )}
 
-              {/* Render all chat messages */}
               {messages.map((msg) => (
                 <ChatMessage key={msg.id} {...msg} />
               ))}
-              <div ref={messagesEndRef} /> {/* Anchor for scrolling to bottom */}
+              <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
 
-          {/* Footer section with chat input form */}
           <footer className="p-4 border-t border-border/70 bg-background/85 sticky bottom-0 backdrop-blur-sm">
             <form onSubmit={handleFormSubmit} className="flex items-center space-x-3">
               <Input
