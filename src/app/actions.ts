@@ -4,6 +4,7 @@
 import { recognizeIntent, type RecognizeIntentOutput, type RecognizeIntentInput } from '@/ai/flows/recognize-intent';
 import { generateMathResponse, type GenerateMathResponseOutput, type GenerateMathResponseInput } from '@/ai/flows/generate-math-response';
 import { generatePhysicsExplanation, type GeneratePhysicsExplanationOutput, type GeneratePhysicsExplanationInput } from '@/ai/flows/generate-physics-explanation';
+import { generateGeneralResponse, type GenerateGeneralResponseOutput, type GenerateGeneralResponseInput } from '@/ai/flows/generate-general-response';
 
 /**
  * Defines the structure of a message item as expected by the AI flows for history.
@@ -24,9 +25,9 @@ export interface ProcessedResponse {
 
 /**
  * Processes a user's query by first recognizing its intent and then
- * delegating to the appropriate specialist AI agent (Math or Physics).
+ * delegating to the appropriate specialist AI agent (Math, Physics, or General).
  * This function acts as the main orchestrator or "Tutor Agent".
- * It now accepts conversation history to provide context to the AI agents.
+ * It accepts conversation history to provide context to the AI agents.
  *
  * @param {string} currentQuery - The user's current natural language query.
  * @param {HistoryMessageForFlow[]} history - An array of previous messages in the conversation.
@@ -54,9 +55,13 @@ export async function processUserQuery(currentQuery: string, history: HistoryMes
         return { intent: 'physics', text: physicsResult.explanation };
       case 'other':
       default: // Includes 'other' and any unexpected intents.
+        const generalInput: GenerateGeneralResponseInput = { query: currentQuery, history: history };
+        const generalResult: GenerateGeneralResponseOutput = await generateGeneralResponse(generalInput);
+        // Combine the general response with a reminder of TutorVerse's specialty.
+        const otherText = `${generalResult.response}\n\n(Remember, I specialize in Math and Physics! You can ask me questions like 'What is Newton's second law?' or 'Solve 2x + 5 = 11'.)`;
         return { 
           intent: 'other', 
-          text: "I specialize in Math and Physics! You can ask me questions like 'What is Newton's second law?' or 'Solve 2x + 5 = 11'. I can also try to remember what we talked about before." 
+          text: otherText
         };
     }
   } catch (error) {
