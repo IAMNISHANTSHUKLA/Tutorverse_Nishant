@@ -25,9 +25,9 @@ export type GenerateMathResponseOutput = z.infer<typeof GenerateMathResponseOutp
 const calculatorTool = ai.defineTool(
   {
     name: 'calculator',
-    description: "Performs basic arithmetic calculations (addition, subtraction, multiplication, division). Input MUST be a valid mathematical expression string (e.g., '25 * 11', '100 / (5 + 5)').",
+    description: "Performs basic arithmetic calculations (addition, subtraction, multiplication, division). Input MUST be a valid mathematical expression string (e.g., '25 * 11', '100 / (5 + 5)', '15 - (5 + 2 + 3)').",
     inputSchema: z.object({
-      expression: z.string().describe("The mathematical expression to evaluate. e.g., '2+2', '100 / (5 * 2)', '25 * 11'. It must be a string that can be directly evaluated."),
+      expression: z.string().describe("The mathematical expression to evaluate. e.g., '2+2', '100 / (5 * 2)', '25 * 11', '15 - (5 + 2 + 3)'. It must be a string that can be directly evaluated."),
     }),
     outputSchema: z.object({
       result: z.string().describe("The result of the calculation as a string, or an error message if evaluation failed (e.g., 'Error: Division by zero')."),
@@ -61,15 +61,25 @@ const generateMathResponsePrompt = ai.definePrompt({
 Your goal is to answer the user's question comprehensively.
 
 If the question involves a direct calculation or can be broken down into steps involving calculations, you MUST use the 'calculator' tool.
-Before using the 'calculator' tool, you MUST convert any natural language mathematical phrases into a direct, evaluable mathematical expression string.
-For example:
+Before using the 'calculator' tool, you MUST convert any natural language mathematical phrases or word problems into a direct, evaluable mathematical expression string.
+
+For simple conversions:
 - "what is 25 into 11?" should be converted to the expression "25 * 11" for the tool.
 - "sum of 10 and 5" or "10 plus 5" should be converted to "10 + 5".
 - "100 divided by 4" should be converted to "100 / 4".
 - "what is 2 to the power of 3" could be "2 ** 3".
 
+For word problems, carefully analyze the problem to identify the numbers and the operations required. Formulate a mathematical expression that solves the problem.
+For instance, if the question is: "suppose nishant has 15 apples, of which he gave 5 to shrish, 2 to gaurav and 3 to vansh, please get me how many apples is nishant left with"
+You should:
+1.  Understand Nishant starts with 15 apples.
+2.  Calculate the total apples given away: 5 (to Shrish) + 2 (to Gaurav) + 3 (to Vansh).
+3.  Formulate the expression to find the remaining apples: 15 - (5 + 2 + 3).
+4.  Use the calculator tool with the expression "15 - (5 + 2 + 3)".
+5.  Explain these steps and the final answer based on the tool's result.
+
 When you use the 'calculator' tool:
-1. Clearly state the natural language part of the question you are about to calculate.
+1. Clearly state the natural language part of the question or the setup of the word problem you are about to calculate.
 2. State the mathematical expression string you are passing to the tool.
 3. State the result obtained from the tool.
 4. Incorporate this result into your step-by-step solution or explanation.
