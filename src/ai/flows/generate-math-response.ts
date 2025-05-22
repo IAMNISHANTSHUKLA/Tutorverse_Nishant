@@ -73,6 +73,7 @@ export async function generateMathResponse(input: GenerateMathResponseInput): Pr
  * Defines the Genkit prompt for the Math Agent.
  * This prompt instructs the LLM on how to behave as a math tutor,
  * when to use the calculator tool, and how to format its response.
+ * It includes guidance on converting natural language to mathematical expressions and handling word problems.
  */
 const generateMathResponsePrompt = ai.definePrompt({
   name: 'generateMathResponsePrompt',
