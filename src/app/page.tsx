@@ -106,14 +106,14 @@ export default function HomePage() {
     <div className="relative w-full h-auto md:h-[calc(100vh-350px)] min-h-[350px] rounded-lg overflow-hidden shadow-xl mb-10 flex items-center justify-center p-4 bg-secondary/10">
       <Image
         // Using light yellow background (#FFFFE0) and teal text/elements (#008080) for placeholder
-        src="https://placehold.co/1200x600/FFFFE0/008080?text=Welcome+to+TutorVerse!" 
+        src="https://placehold.co/1200x600/FFFFE0/008080" 
         alt="A cheerful and inviting learning environment with abstract educational icons"
         fill
         style={{ objectFit: "cover" }}
         data-ai-hint="education learning kids"
         className="opacity-20" // Soften the background image
       />
-      <div className="relative z-10 text-center p-6 md:p-10 bg-background/80 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl mx-auto"> {/* Added mx-auto for safety, though flex on parent should center */}
+      <div className="relative z-10 text-center p-6 md:p-10 bg-background/80 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl mx-auto">
         <div className="flex justify-center mb-6">
           <LogoIcon className="h-24 w-24 text-primary" />
         </div>
@@ -242,3 +242,4 @@ export default function HomePage() {
     </div>
   );
 }
+
