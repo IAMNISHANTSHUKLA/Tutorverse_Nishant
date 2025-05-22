@@ -48,17 +48,19 @@ TutorVerse is a friendly and interactive AI-powered learning assistant designed 
 
 3.  **Google AI API Key for Genkit (CRITICAL FOR AI FEATURES)**:
     *   Genkit requires access to a Google AI model (like Gemini) for its AI capabilities.
-    *   **Crucially, you MUST set the `GOOGLE_API_KEY` environment variable.** The application's AI features (`src/ai/genkit.ts`) are configured to read this key from the environment.
-    *   **How to set the `GOOGLE_API_KEY`**:
+    *   **Current Setup (Development/Prototyping Only - API Key Hardcoded)**: The `GOOGLE_API_KEY` is currently hardcoded in `src/ai/genkit.ts`. This is done to simplify initial setup in environments where setting environment variables might be challenging.
+    *   **SECURITY WARNING**: **For any production deployment or if sharing this code, you MUST remove the hardcoded API key and use environment variables.**
+    *   **Recommended Setup (for Production/Secure Use)**:
         1.  Visit [Google AI Studio](https://aistudio.google.com/app/apikey) to create an API key if you don't have one.
-        2.  **In Firebase Studio (or your deployment environment):** Find the section for setting environment variables (often called "Environment Variables," "Secrets," or "Configuration"). Add a new variable:
+        2.  **Remove the hardcoded `apiKey` option** from `googleAI(...)` in `src/ai/genkit.ts`. The Genkit `googleAI` plugin will automatically look for `GOOGLE_API_KEY` or `GEMINI_API_KEY` in the environment.
+        3.  **In Firebase Studio (or your deployment environment):** Find the section for setting environment variables (often called "Environment Variables," "Secrets," or "Configuration"). Add a new variable:
             *   **Name**: `GOOGLE_API_KEY`
             *   **Value**: `your_google_ai_api_key_from_ai_studio` (Paste your actual key here)
-        3.  **For Local Development (outside Firebase Studio):** Create a `.env.local` file in the root of your project (if it doesn't exist) and add:
+        4.  **For Local Development (outside Firebase Studio):** Create a `.env.local` file in the root of your project (if it doesn't exist) and add:
             ```env
             GOOGLE_API_KEY=your_google_ai_api_key_from_ai_studio
             ```
-        4.  **Important**: After setting this environment variable (either in Firebase Studio or locally), you **MUST restart or redeploy** your application for the change to take effect.
+        5.  **Important**: After setting this environment variable (either in Firebase Studio or locally), you **MUST restart or redeploy** your application for the change to take effect.
 
 ## ධ Running the Application
 
@@ -101,7 +103,7 @@ The core AI functionality is built around a multi-agent system:
 
 This project uses **Genkit**, an open-source framework from Google, to build AI-powered features. Genkit helps structure, run, and manage AI flows, making it easier to integrate with language models like Gemini. Key Genkit files include:
 
-*   `src/ai/genkit.ts`: Initializes and configures Genkit with the Google AI plugin. **It expects the `GOOGLE_API_KEY` to be set as an environment variable.**
+*   `src/ai/genkit.ts`: Initializes and configures Genkit with the Google AI plugin.
 *   `src/ai/flows/`: Contains the definitions for different AI flows (e.g., intent recognition, math response, physics explanation).
 *   `src/ai/dev.ts`: Used for local Genkit development (e.g., starting the Genkit developer UI).
 
