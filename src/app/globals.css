@@ -4,89 +4,95 @@
 
 @layer base {
   :root {
-    --background: 210 40% 98%; /* Lightest Blue */
-    --foreground: 210 20% 25%; /* Dark Slate Blue */
+    /* TutorVerse Theme: Teal, Light Yellow, Orange */
+    --background: 60 100% 94%; /* Light Yellow (#FFFFE0) */
+    --foreground: 180 60% 18%; /* Dark Teal - for text on light yellow */
 
     --card: 0 0% 100%; /* White */
-    --card-foreground: 210 20% 25%; /* Dark Slate Blue */
+    --card-foreground: 180 60% 18%; /* Dark Teal */
 
     --popover: 0 0% 100%; /* White */
-    --popover-foreground: 210 20% 25%; /* Dark Slate Blue */
+    --popover-foreground: 180 60% 18%; /* Dark Teal */
 
-    --primary: 200 90% 50%; /* Bright Sky Blue - For main interactive elements */
-    --primary-foreground: 0 0% 100%; /* White */
+    --primary: 180 100% 25%; /* Cheerful Teal (#008080) */
+    --primary-foreground: 0 0% 100%; /* White - for text on Teal */
+    
+    /* Using Orange as Accent, and a Muted Teal as Secondary */
+    --secondary: 180 50% 45%; /* Muted Teal */
+    --secondary-foreground: 0 0% 100%; /* White */
 
-    --secondary: 30 100% 65%; /* Playful Orange - For secondary actions or highlights */
-    --secondary-foreground: 210 20% 15%; /* Darker text for orange */
+    --muted: 60 80% 88%; /* Lighter/Muted Yellow */
+    --muted-foreground: 180 40% 35%; /* Muted Teal for less emphasis text */
 
-    --muted: 210 30% 90%; /* Light Grayish Blue */
-    --muted-foreground: 210 20% 45%; /* Medium Slate Blue */
-
-    --accent: 330 80% 60%; /* Vibrant Pink/Purple - For special accents */
-    --accent-foreground: 0 0% 100%; /* White */
+    --accent: 39 100% 50%; /* Bright Orange (#FFA500) */
+    --accent-foreground: 0 0% 100%; /* White - for text on Orange */
 
     --destructive: 0 70% 55%; /* Softer Red */
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 98%; /* Light text for destructive */
 
-    --border: 210 25% 85%; /* Light Blue-Gray Border */
+    --border: 180 50% 80%; /* Light Tealish border */
     --input: 0 0% 100%; /* White for input background */
-    --ring: 200 90% 55%; /* Slightly darker Sky Blue for focus rings */
+    --ring: 180 100% 30%; /* Teal for focus rings */
 
     --radius: 0.75rem; /* Slightly more rounded for a softer feel */
 
-    --chart-1: 190 70% 50%; /* Tealish Blue */
-    --chart-2: 20 90% 60%; /* Bright Orange */
-    --chart-3: 260 70% 65%; /* Lavender */
-    --chart-4: 40 95% 55%; /* Sunny Yellow */
+    /* Chart colors can be adjusted if needed, keeping some variety */
+    --chart-1: 180 70% 50%; /* Tealish Blue */
+    --chart-2: 39 90% 60%;  /* Bright Orange */
+    --chart-3: 210 70% 65%; /* Complementary Blue/Purple */
+    --chart-4: 45 95% 55%;  /* Sunny Yellow (different from background) */
     --chart-5: 350 80% 60%; /* Coral Pink */
 
-    --sidebar-background: 205 50% 30%; /* Deeper Blue for sidebar */
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 30 100% 60%; /* Orange for sidebar primary actions */
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 205 50% 20%; /* Darker blue for sidebar accent */
+    /* Sidebar colors based on the new theme */
+    --sidebar-background: 180 70% 20%; /* Deeper Teal for sidebar */
+    --sidebar-foreground: 0 0% 98%; /* Light text */
+    --sidebar-primary: 39 100% 55%; /* Orange for sidebar primary actions */
+    --sidebar-primary-foreground: 0 0% 100%; /* White */
+    --sidebar-accent: 180 70% 15%; /* Darker Teal for sidebar accent */
     --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 205 50% 20%;
-    --sidebar-ring: 30 100% 60%;
+    --sidebar-border: 180 70% 15%;
+    --sidebar-ring: 39 100% 55%;
   }
 
   .dark {
-    --background: 220 15% 10%; /* Dark Navy */
-    --foreground: 210 30% 90%; /* Light Grayish Blue */
+    /* Dark Theme adjustments for TutorVerse: Teal, Dark Yellow/Brown, Orange */
+    --background: 180 15% 10%; /* Dark Teal/Navy */
+    --foreground: 60 70% 85%; /* Light Yellowish/Cream text */
     
-    --card: 220 15% 15%; /* Slightly Lighter Navy for cards */
-    --card-foreground: 210 30% 90%;
+    --card: 180 15% 15%; /* Slightly Lighter Dark Teal for cards */
+    --card-foreground: 60 70% 85%;
     
-    --popover: 220 15% 12%; /* Darker popover */
-    --popover-foreground: 210 30% 90%;
+    --popover: 180 15% 12%; /* Darker popover */
+    --popover-foreground: 60 70% 85%;
     
-    --primary: 200 80% 55%; /* Vivid Sky Blue */
-    --primary-foreground: 220 15% 5%; /* Very Dark Navy for text on primary */
+    --primary: 180 80% 45%; /* Vivid Teal */
+    --primary-foreground: 180 100% 10%; /* Very Dark Teal for text on primary */
     
-    --secondary: 35 100% 60%; /* Vibrant Orange */
-    --secondary-foreground: 220 15% 5%;
+    --secondary: 180 40% 30%; /* Muted Dark Teal */
+    --secondary-foreground: 60 70% 85%; /* Light Yellowish */
+
+    --muted: 180 15% 20%; /* Darker Muted Teal/Navy */
+    --muted-foreground: 180 25% 65%; /* Lighter Muted Teal */
     
-    --muted: 220 15% 20%; /* Darker Muted Navy */
-    --muted-foreground: 210 25% 65%; /* Lighter Muted Blue */
-    
-    --accent: 330 70% 65%; /* Bright Pink/Purple */
-    --accent-foreground: 0 0% 100%;
+    --accent: 39 90% 55%; /* Bright Orange */
+    --accent-foreground: 0 0% 10%; /* Dark text for orange */
     
     --destructive: 0 60% 50%; /* Darker, less saturated Red */
     --destructive-foreground: 0 0% 95%;
     
-    --border: 220 15% 25%; /* Muted Navy Border */
-    --input: 220 15% 18%; /* Dark Input Background */
-    --ring: 200 80% 60%; /* Bright Sky Blue for focus */
+    --border: 180 15% 25%; /* Muted Teal/Navy Border */
+    --input: 180 15% 18%; /* Dark Input Background */
+    --ring: 180 80% 50%; /* Bright Teal for focus */
 
-    --sidebar-background: 220 10% 8%;
-    --sidebar-foreground: 210 30% 90%;
-    --sidebar-primary: 200 80% 55%;
-    --sidebar-primary-foreground: 220 15% 5%;
-    --sidebar-accent: 220 10% 12%;
-    --sidebar-accent-foreground: 210 30% 90%;
-    --sidebar-border: 220 10% 12%;
-    --sidebar-ring: 35 100% 60%;
+    /* Sidebar dark theme */
+    --sidebar-background: 180 10% 8%;
+    --sidebar-foreground: 60 70% 85%;
+    --sidebar-primary: 180 80% 45%;
+    --sidebar-primary-foreground: 180 100% 10%;
+    --sidebar-accent: 180 10% 12%;
+    --sidebar-accent-foreground: 60 70% 85%;
+    --sidebar-border: 180 10% 12%;
+    --sidebar-ring: 39 90% 55%;
   }
 }
 
@@ -96,9 +102,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-geist-sans);
+    font-family: var(--font-geist-sans); /* Using Geist Sans as per existing setup */
   }
-  /* Add a subtle text shadow for better readability on hero image */
+  /* Add a subtle text shadow for better readability on hero image if needed */
   .text-shadow {
     text-shadow: 0 1px 3px hsla(var(--foreground), 0.3);
   }

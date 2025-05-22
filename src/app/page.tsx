@@ -5,7 +5,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SendHorizonal, MessageSquareDashed, Sparkles, ArrowRight, Star, Rocket, AlertTriangle } from 'lucide-react';
+import { SendHorizonal, MessageSquareDashed, Sparkles, ArrowRight, Star, Rocket, AlertTriangle, BookOpen, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -14,13 +14,13 @@ import { LogoIcon } from '@/components/icons/logo';
 import { processUserQuery } from './actions';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-// import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"; // No longer needed for config error
 import { AuthStatus } from '@/components/auth-components'; 
 import { useAuth } from '@/contexts/auth-context'; 
 
 /**
  * HomePage component: Serves as the main interface for the TutorVerse application.
  * It includes a welcome section and a chat interface for users to interact with AI tutors.
+ * Styled with a child-friendly theme: Teal (primary), Light Yellow (background), Orange (accent).
  */
 export default function HomePage() {
   const [query, setQuery] = React.useState('');
@@ -44,7 +44,7 @@ export default function HomePage() {
 
   React.useEffect(scrollToBottom, [messages]);
 
-  // Focus the input field when the component mounts or when user logs in/out (if not already focused)
+  // Focus the input field when the component mounts or when user logs in/out
   React.useEffect(() => {
     if (!authIsLoading && document.activeElement !== inputRef.current) {
        setTimeout(() => inputRef.current?.focus(), 0);
@@ -54,14 +54,14 @@ export default function HomePage() {
   // Handles the submission of the user's query.
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!query.trim() || isLoading) return;
+    if (!query.trim() || isLoading || !user) return; // Ensure user is logged in to submit
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content: query,
     };
-    const loadingMessageId = (Date.now() + 1).toString(); // Unique ID for loading message
+    const loadingMessageId = (Date.now() + 1).toString();
     const loadingMessage: Message = {
       id: loadingMessageId,
       role: 'assistant',
@@ -103,64 +103,65 @@ export default function HomePage() {
 
   // Welcome section with conditional rendering based on auth state
   const WelcomeSection = () => (
-    <div className="relative w-full h-auto md:h-[calc(100vh-320px)] min-h-[300px] rounded-lg overflow-hidden shadow-xl mb-8 flex items-center justify-center p-4">
+    <div className="relative w-full h-auto md:h-[calc(100vh-350px)] min-h-[350px] rounded-lg overflow-hidden shadow-xl mb-10 flex items-center justify-center p-4 bg-secondary/10">
       <Image
-        src="https://placehold.co/1200x600/FFFFE0/FFA500?text=Welcome+Explorers!" 
-        alt="Friendly learning environment with kids and abstract shapes"
-        fill // Use fill instead of layout
-        style={{ objectFit: "cover" }} // Use style for objectFit with fill
-        data-ai-hint="children learning education"
-        className="opacity-30"
+        // Using light yellow background (#FFFFE0) and teal text/elements (#008080) for placeholder
+        src="https://placehold.co/1200x600/FFFFE0/008080?text=Welcome+to+TutorVerse!" 
+        alt="A cheerful and inviting learning environment with abstract educational icons"
+        fill
+        style={{ objectFit: "cover" }}
+        data-ai-hint="education learning kids"
+        className="opacity-20" // Soften the background image
       />
-      <div className="relative z-10 text-center p-4 md:p-8 bg-background/80 backdrop-blur-sm rounded-xl shadow-lg max-w-2xl">
-        <div className="flex justify-center mb-4">
-          <LogoIcon className="h-20 w-20 text-primary" />
+      <div className="relative z-10 text-center p-6 md:p-10 bg-background/80 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl">
+        <div className="flex justify-center mb-6">
+          <LogoIcon className="h-24 w-24 text-primary" />
         </div>
         <h2 className="text-4xl md:text-5xl font-extrabold text-primary mb-4">
-          Welcome to <span className="text-accent">TutorVerse</span>!
+          Explore the Universe of Knowledge!
         </h2>
-        <p className="text-lg md:text-xl text-foreground mb-6">
-          Your amazing AI-powered adventure in Math and Physics starts right here. Ask questions, explore concepts, and unlock your inner genius!
+        <p className="text-lg md:text-xl text-foreground mb-8">
+          TutorVerse is your fun, AI-powered pal for mastering Math and Physics. Let's learn something new today!
         </p>
         {!authIsLoading && !user && (
-          <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-8 py-6 shadow-lg transform hover:scale-105 transition-transform">
+          <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-10 py-7 shadow-lg transform hover:scale-105 transition-transform rounded-full">
             <Link href="/signin">
-              Join the Adventure! <ArrowRight className="ml-2 h-5 w-5" />
+              Start Your Adventure! <Rocket className="ml-2 h-5 w-5" />
             </Link>
           </Button>
         )}
          {user && (
-           <p className="text-xl font-semibold text-secondary">Ready to explore, {user.displayName || 'Explorer'}?</p>
+           <p className="text-2xl font-semibold text-accent">Ready to explore, {user.displayName || 'Explorer'}?</p>
         )}
       </div>
     </div>
   );
 
-  // Feature cards
+  // Feature cards - more descriptive and child-friendly
   const FeatureCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 px-4">
-      <Card className="hover:shadow-lg transition-shadow duration-300 bg-card/80 backdrop-blur-sm">
+      <Card className="hover:shadow-xl transition-shadow duration-300 bg-card/90 backdrop-blur-sm border-primary/30">
         <CardHeader>
-          <CardTitle className="flex items-center text-primary"><Sparkles className="mr-2 h-6 w-6 text-accent" />AI-Powered Tutoring</CardTitle>
+          <CardTitle className="flex items-center text-primary"><Sparkles className="mr-2 h-7 w-7 text-accent" />Smart AI Buddy</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardDescription>Get instant help with tricky math and physics problems from our smart AI tutors.</CardDescription>
+          <CardDescription className="text-md">Ask any Math or Physics question. Our AI tutor explains things simply!</CardDescription>
         </CardContent>
       </Card>
-      <Card className="hover:shadow-lg transition-shadow duration-300 bg-card/80 backdrop-blur-sm">
+      <Card className="hover:shadow-xl transition-shadow duration-300 bg-card/90 backdrop-blur-sm border-primary/30">
         <CardHeader>
-          <CardTitle className="flex items-center text-primary"><Rocket className="mr-2 h-6 w-6 text-accent" />Explore & Discover</CardTitle>
+          <CardTitle className="flex items-center text-primary"><BookOpen className="mr-2 h-7 w-7 text-accent" />Learn & Discover</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardDescription>Dive deep into concepts, ask "what if" questions, and satisfy your curiosity.</CardDescription>
+          <CardDescription className="text-md">Explore tricky topics, understand formulas, and see how cool science is!</CardDescription>
         </CardContent>
       </Card>
-      <Card className="hover:shadow-lg transition-shadow duration-300 bg-card/80 backdrop-blur-sm">
+      <Card className="hover:shadow-xl transition-shadow duration-300 bg-card/90 backdrop-blur-sm border-primary/30">
         <CardHeader>
-          <CardTitle className="flex items-center text-primary"><Star className="mr-2 h-6 w-6 text-accent" />Fun & Engaging</CardTitle>
+          <CardTitle className="flex items-center text-primary"><Lightbulb className="mr-2 h-7 w-7 text-accent" />Boost Your Brain!</CardTitle>
         </CardHeader>
         <CardContent>
-          <CardDescription>Learning doesn't have to be boring! We make complex topics easy to understand.</CardDescription>
+          <CardDescription className="text-md">Make learning an exciting game. Become a Math Whiz or Physics Pro!</CardDescription>
         </CardContent>
       </Card>
     </div>
@@ -168,10 +169,10 @@ export default function HomePage() {
 
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-background to-muted/30">
+    <div className="flex flex-col min-h-screen bg-background"> {/* Main background is Light Yellow */}
       <header className="p-4 border-b border-border/70 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-md z-20 shadow-md">
         <Link href="/" className="flex items-center space-x-3">
-          <LogoIcon className="h-10 w-10 text-primary" />
+          <LogoIcon className="h-10 w-10 text-primary" /> {/* Teal logo */}
           <h1 className="text-3xl font-bold text-primary flex items-center">
             TutorVerse
           </h1>
@@ -183,10 +184,10 @@ export default function HomePage() {
         <main className="flex-1 flex flex-col p-0 md:p-4">
           <ScrollArea className="flex-1" id="message-scroll-area">
             <div className="p-4 md:p-6 space-y-6">
-              {messages.length <= 1 && (
+              {messages.length <= 1 && !user && !authIsLoading && ( // Show landing only if not logged in and no prior messages
                 <>
                   <WelcomeSection />
-                  {!user && !authIsLoading && <FeatureCards />}
+                  <FeatureCards />
                 </>
               )}
               
@@ -198,7 +199,7 @@ export default function HomePage() {
 
             {user && !authIsLoading && messages.length === 1 && messages[0].intent === 'greeting' && (
               <div className="flex flex-col items-center justify-center text-center p-10 text-muted-foreground mt-8">
-                <MessageSquareDashed className="w-20 h-20 mb-6 text-primary/70" />
+                <MessageSquareDashed className="w-24 h-24 mb-6 text-primary/70" /> {/* Teal icon */}
                 <p className="text-xl font-semibold text-foreground">Ask me anything about Math or Physics!</p>
                 <p className="text-md mt-1">For example: &quot;What is pi?&quot; or &quot;Explain gravity!&quot;</p>
               </div>
@@ -215,16 +216,16 @@ export default function HomePage() {
                 placeholder={
                   user 
                     ? "Type your question here, explorer!" 
-                    : "Sign in to ask questions!"
+                    : "Please sign in to ask questions!"
                 }
-                className="flex-1 rounded-full px-6 py-4 text-base focus-visible:ring-primary shadow-inner"
+                className="flex-1 rounded-full px-6 py-4 text-base focus-visible:ring-primary shadow-inner bg-input text-foreground placeholder:text-muted-foreground"
                 disabled={isLoading || (!user && !authIsLoading)} 
                 aria-label="Your question"
               />
               <Button
                 type="submit"
                 size="icon"
-                className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90 disabled:bg-muted shadow-lg transform hover:scale-105 transition-transform"
+                className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90 disabled:bg-muted/70 text-primary-foreground shadow-lg transform hover:scale-105 transition-transform" // Teal button
                 disabled={isLoading || !query.trim() || (!user && !authIsLoading)}
                 aria-label="Send question"
               >
