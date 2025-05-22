@@ -23,11 +23,14 @@ export interface ProcessedResponse {
   text: string;
 }
 
+const MAX_QUERY_LENGTH = 1000; // Define a maximum query length
+
 /**
  * Processes a user's query by first recognizing its intent and then
  * delegating to the appropriate specialist AI agent (Math, Physics, or General).
  * This function acts as the main orchestrator or "Tutor Agent".
  * It accepts conversation history to provide context to the AI agents.
+ * It also performs basic input validation.
  *
  * @param {string} currentQuery - The user's current natural language query.
  * @param {HistoryMessageForFlow[]} history - An array of previous messages in the conversation.
@@ -36,6 +39,10 @@ export interface ProcessedResponse {
 export async function processUserQuery(currentQuery: string, history: HistoryMessageForFlow[]): Promise<ProcessedResponse> {
   if (!currentQuery.trim()) {
     return { intent: 'error', text: "Please enter a question." };
+  }
+
+  if (currentQuery.length > MAX_QUERY_LENGTH) {
+    return { intent: 'error', text: `That's a very long question! Please try asking something shorter (max ${MAX_QUERY_LENGTH} characters).` };
   }
 
   try {
