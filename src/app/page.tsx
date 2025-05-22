@@ -5,7 +5,7 @@
 import * as React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { SendHorizonal, MessageSquareDashed, Sparkles, ArrowRight, Star, Rocket, AlertTriangle, BookOpen, Lightbulb } from 'lucide-react';
+import { SendHorizonal, MessageSquareDashed, Sparkles, Rocket, BookOpen, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -113,7 +113,7 @@ export default function HomePage() {
         data-ai-hint="education learning kids"
         className="opacity-20" // Soften the background image
       />
-      <div className="relative z-10 text-center p-6 md:p-10 bg-background/80 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl">
+      <div className="relative z-10 text-center p-6 md:p-10 bg-background/80 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl mx-auto"> {/* Added mx-auto for safety, though flex on parent should center */}
         <div className="flex justify-center mb-6">
           <LogoIcon className="h-24 w-24 text-primary" />
         </div>
@@ -124,7 +124,7 @@ export default function HomePage() {
           TutorVerse is your fun, AI-powered pal for mastering Math and Physics. Let's learn something new today!
         </p>
         {!authIsLoading && !user && (
-          <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-10 py-7 shadow-lg transform hover:scale-105 transition-transform rounded-full">
+          <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-accent-foreground text-lg px-6 sm:px-10 py-4 sm:py-7 shadow-lg transform hover:scale-105 transition-transform rounded-full">
             <Link href="/signin">
               Start Your Adventure! <Rocket className="ml-2 h-5 w-5" />
             </Link>
@@ -219,14 +219,14 @@ export default function HomePage() {
                     : "Please sign in to ask questions!"
                 }
                 className="flex-1 rounded-full px-6 py-4 text-base focus-visible:ring-primary shadow-inner bg-input text-foreground placeholder:text-muted-foreground"
-                disabled={isLoading || (!user && !authIsLoading)} 
+                disabled={isLoading || !user } // Removed authIsLoading check as it's covered by !user for enabled state
                 aria-label="Your question"
               />
               <Button
                 type="submit"
                 size="icon"
                 className="rounded-full w-14 h-14 bg-primary hover:bg-primary/90 disabled:bg-muted/70 text-primary-foreground shadow-lg transform hover:scale-105 transition-transform" // Teal button
-                disabled={isLoading || !query.trim() || (!user && !authIsLoading)}
+                disabled={isLoading || !query.trim() || !user } // Removed authIsLoading check
                 aria-label="Send question"
               >
                 <SendHorizonal className={cn("h-6 w-6", isLoading ? "animate-pulse" : "")} />
