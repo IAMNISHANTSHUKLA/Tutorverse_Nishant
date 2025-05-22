@@ -105,7 +105,7 @@ No previous conversation history.
 
 Current User Question: {{{question}}}
 
-If the question involves a direct calculation or can be broken down into steps involving calculations, you MUST use the 'calculator' tool.
+If the question involves a direct calculation (e.g., "10-8", "25*11") or can be broken down into steps involving calculations, you MUST use the 'calculator' tool.
 Before using the 'calculator' tool, you MUST convert any natural language mathematical phrases or word problems into a direct, evaluable mathematical expression string.
 
 For simple conversions:
@@ -131,14 +131,15 @@ When you use the 'calculator' tool:
 
 If the question is more conceptual (e.g., "What is a prime number?") or refers to previous parts of the conversation, answer it directly, using the history for context, without necessarily using the calculator tool.
 
-Provide a detailed solution to the question, explaining each step clearly and concisely. Your final output MUST be a JSON object structured as {"answer": "Your detailed explanation here"}.
+Provide a detailed solution to the question, explaining each step clearly and concisely. Your final output MUST be a JSON object structured as {"answer": "Your detailed explanation here"}. Ensure the 'answer' field is always populated with a non-empty string.
 `,
 });
 
 /**
  * Defines the Genkit flow for generating math responses.
  * This flow takes a math question and history, invokes the Math Agent prompt (which may use tools),
- * and returns the structured answer. It includes error handling for null outputs from the LLM.
+ * and returns the structured answer. It includes error handling for null or invalid outputs from the LLM,
+ * and catches errors during prompt execution.
  */
 const generateMathResponseFlow = ai.defineFlow(
   {
@@ -147,19 +148,32 @@ const generateMathResponseFlow = ai.defineFlow(
     outputSchema: GenerateMathResponseOutputSchema,
   },
   async (input): Promise<GenerateMathResponseOutput> => {
-    const { output } = await generateMathResponsePrompt(input);
+    try {
+      const { output } = await generateMathResponsePrompt(input);
 
-    if (output === null) {
+      // Check if the output is null, or if the answer field is missing, not a string, or an empty string.
+      if (output === null || typeof output.answer !== 'string' || output.answer.trim() === '') {
+        console.error(
+          `Math response prompt for question "${input.question}" (history: ${JSON.stringify(input.history)}) returned null, invalid, or empty output. ` +
+          `LLM Output (if not null): ${output ? JSON.stringify(output) : 'null'}. ` +
+          `Falling back to a default error message.`
+        );
+        return {
+          answer: "I'm sorry, I encountered a hiccup trying to answer that. Could you try rephrasing or asking a different math question?"
+        };
+      }
+      // If output and output.answer are valid, return it.
+      return output;
+    } catch (error) {
+      // Catch any error during the execution of generateMathResponsePrompt
       console.error(
-        `Math response prompt for question "${input.question}" (with history) returned null output. ` +
-        `This means the LLM failed to generate a response that conforms to the expected schema. ` +
-        `Falling back to a default error message.`
+        `Error during generateMathResponsePrompt execution for question "${input.question}" (history: ${JSON.stringify(input.history)}):`, error
       );
+      // Return a valid schema object in case of any error during prompt execution
       return {
-        answer: "I'm sorry, I wasn't able to generate a response for your math question. " +
-                "This might be due to the complexity or phrasing of the question, or an internal issue. Please try rephrasing or asking a different question."
+        answer: "I'm truly stumped on that one! There was an unexpected issue processing your math question. Please try a different question."
       };
     }
-    return output;
   }
 );
+
