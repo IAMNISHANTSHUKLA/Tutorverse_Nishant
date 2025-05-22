@@ -25,7 +25,7 @@ export type GenerateMathResponseOutput = z.infer<typeof GenerateMathResponseOutp
 const calculatorTool = ai.defineTool(
   {
     name: 'calculator',
-    description: "Performs basic arithmetic calculations (addition, subtraction, multiplication, division). Input MUST be a valid mathematical expression string (e.g., '25 * 11', '100 / (5 + 5)', '15 - (5 + 2 + 3)').",
+    description: "Performs basic arithmetic calculations (addition, subtraction, multiplication, division). Input MUST be a valid mathematical expression string (e.g., '25 * 11', '100 / (5 + 5)', '15 - (5 + 2 + 3)'). This tool evaluates mathematical expressions.",
     inputSchema: z.object({
       expression: z.string().describe("The mathematical expression to evaluate. e.g., '2+2', '100 / (5 * 2)', '25 * 11', '15 - (5 + 2 + 3)'. It must be a string that can be directly evaluated."),
     }),
@@ -88,7 +88,7 @@ If the question is more conceptual and doesn't require calculation (e.g., "What 
 
 Question: {{{question}}}
 
-Provide a detailed solution to the question, explaining each step clearly and concisely.
+Provide a detailed solution to the question, explaining each step clearly and concisely. Your final output MUST be a JSON object structured as {"answer": "Your detailed explanation here"}.
 `,
 });
 
@@ -98,10 +98,22 @@ const generateMathResponseFlow = ai.defineFlow(
     inputSchema: GenerateMathResponseInputSchema,
     outputSchema: GenerateMathResponseOutputSchema,
   },
-  async input => {
-    const {output} = await generateMathResponsePrompt(input);
-    return output!;
+  async (input): Promise<GenerateMathResponseOutput> => {
+    const { output } = await generateMathResponsePrompt(input);
+
+    if (output === null) {
+      console.error(
+        `Math response prompt for question "${input.question}" returned null output. ` +
+        `This means the LLM failed to generate a response that conforms to the expected schema. ` +
+        `Falling back to a default error message.`
+      );
+      return {
+        answer: "I'm sorry, I wasn't able to generate a response for your math question. " +
+                "This might be due to the complexity or phrasing of the question. Please try rephrasing or asking a different question."
+      };
+    }
+    // If output is not null, it should conform to GenerateMathResponseOutputSchema
+    // as per the definePrompt definition.
+    return output;
   }
 );
-
-    
