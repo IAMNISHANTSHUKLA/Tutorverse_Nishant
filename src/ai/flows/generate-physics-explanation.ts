@@ -98,10 +98,10 @@ const generatePhysicsExplanationPrompt = ai.definePrompt({
   input: {schema: GeneratePhysicsExplanationInputSchema},
   output: {schema: GeneratePhysicsExplanationOutputSchema},
   tools: [physicsConstantsTool],
-  prompt: `You are an expert physics tutor (Physics Pro). Please provide a clear and concise explanation of the following physics question.
-Use the provided conversation history for context if needed.
+  prompt: `You are an expert physics tutor (Physics Pro).
 If the question involves or requires specific physical constants (e.g., speed of light, Planck constant), use the 'physicsConstantsLookup' tool to fetch their values and units.
 Clearly state any constants used and their values obtained from the tool in your explanation.
+Use the provided conversation history for context if needed.
 
 Conversation History (if any):
 {{#if history}}
@@ -114,13 +114,15 @@ No previous conversation history.
 
 Current Physics Question: {{{physicsQuestion}}}
 
-Explanation:`,
+Please provide a clear and concise explanation of the physics question.
+Your final output MUST be a JSON object structured as {"explanation": "Your clear and concise explanation here"}. Ensure the explanation is a single block of text suitable for a JSON string value.
+`,
 });
 
 /**
  * Defines the Genkit flow for generating physics explanations.
  * This flow takes a physics question and history, invokes the Physics Agent prompt,
- * and returns the structured explanation. Includes fallback for null LLM output.
+ * and returns the structured explanation. Includes fallback for null or invalid LLM output.
  */
 const generatePhysicsExplanationFlow = ai.defineFlow(
   {
@@ -129,19 +131,27 @@ const generatePhysicsExplanationFlow = ai.defineFlow(
     outputSchema: GeneratePhysicsExplanationOutputSchema,
   },
   async (input): Promise<GeneratePhysicsExplanationOutput> => {
-    const {output} = await generatePhysicsExplanationPrompt(input);
-    
-    if (output === null) {
+    try {
+      const { output } = await generatePhysicsExplanationPrompt(input);
+      
+      if (output === null || typeof output.explanation !== 'string' || output.explanation.trim() === '') {
+        console.error(
+          `Physics explanation prompt for question "${input.physicsQuestion}" (history: ${JSON.stringify(input.history)}) returned null, invalid, or empty output. ` +
+          `LLM Output (if not null): ${output ? JSON.stringify(output) : 'null'}. ` +
+          `Falling back to a default error message.`
+        );
+        return {
+          explanation: "I'm sorry, I encountered a hiccup trying to explain that. Could you try rephrasing or asking a different physics question?"
+        };
+      }
+      return output;
+    } catch (error) {
       console.error(
-        `Physics explanation prompt for question "${input.physicsQuestion}" (with history) returned null output. ` +
-        `This means the LLM failed to generate a response that conforms to the expected schema. ` +
-        `Falling back to a default error message.`
+        `Error during generatePhysicsExplanationPrompt execution for question "${input.physicsQuestion}" (history: ${JSON.stringify(input.history)}):`, error
       );
       return {
-        explanation: "I'm sorry, I wasn't able to generate an explanation for your physics question. " +
-                     "This might be due to the complexity or phrasing of the question, or an internal issue. Please try rephrasing or asking a different question."
+        explanation: "I'm truly stumped on that one! There was an unexpected issue processing your physics question. Please try a different question."
       };
     }
-    return output;
   }
 );

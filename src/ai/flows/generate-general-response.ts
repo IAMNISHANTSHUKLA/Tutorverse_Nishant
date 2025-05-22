@@ -78,7 +78,7 @@ Keep your answer concise. Your final output MUST be a JSON object structured as 
 /**
  * Defines the Genkit flow for generating general responses.
  * This flow takes a query and history, invokes the prompt,
- * and returns the structured answer. It includes error handling for null outputs from the LLM.
+ * and returns the structured answer. It includes error handling for null or invalid outputs from the LLM.
  */
 const generateGeneralResponseFlow = ai.defineFlow(
   {
@@ -87,18 +87,27 @@ const generateGeneralResponseFlow = ai.defineFlow(
     outputSchema: GenerateGeneralResponseOutputSchema,
   },
   async (input): Promise<GenerateGeneralResponseOutput> => {
-    const { output } = await generateGeneralResponsePrompt(input);
+    try {
+      const { output } = await generateGeneralResponsePrompt(input);
 
-    if (output === null) {
-      console.error(
-        `General response prompt for query "${input.query}" (with history) returned null output. ` +
-        `This means the LLM failed to generate a response that conforms to the expected schema. ` +
-        `Falling back to a default message.`
+      if (output === null || typeof output.response !== 'string' || output.response.trim() === '') {
+        console.error(
+          `General response prompt for query "${input.query}" (history: ${JSON.stringify(input.history)}) returned null, invalid, or empty output. ` +
+          `LLM Output (if not null): ${output ? JSON.stringify(output) : 'null'}. ` +
+          `Falling back to a default message.`
+        );
+        return {
+          response: "I'm not quite sure how to answer that. Perhaps you could try asking a specific Math or Physics question?"
+        };
+      }
+      return output;
+    } catch (error) {
+       console.error(
+        `Error during generateGeneralResponsePrompt execution for query "${input.query}" (history: ${JSON.stringify(input.history)}):`, error
       );
       return {
-        response: "I'm not quite sure how to answer that. Perhaps you could try asking a specific Math or Physics question?"
+          response: "I'm sorry, I had a little trouble understanding that. Could you ask in a different way, or try a Math or Physics question?"
       };
     }
-    return output;
   }
 );
