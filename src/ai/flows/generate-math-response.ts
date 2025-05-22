@@ -1,7 +1,9 @@
 
 'use server';
 /**
- * @fileOverview A math question answering AI agent.
+ * @fileOverview A math question answering AI agent (Math Whiz).
+ * This flow is responsible for generating step-by-step solutions or explanations
+ * for math-related questions. It can utilize a calculator tool for arithmetic operations.
  *
  * - generateMathResponse - A function that handles the math question answering process.
  * - GenerateMathResponseInput - The input type for the generateMathResponse function.
@@ -11,17 +13,26 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+/**
+ * Defines the expected input schema for the math response generation flow.
+ */
 const GenerateMathResponseInputSchema = z.object({
   question: z.string().describe('The math question to be answered.'),
 });
 export type GenerateMathResponseInput = z.infer<typeof GenerateMathResponseInputSchema>;
 
+/**
+ * Defines the expected output schema for the math response generation flow.
+ */
 const GenerateMathResponseOutputSchema = z.object({
   answer: z.string().describe('The step-by-step solution or explanation to the math question, incorporating any calculations performed.'),
 });
 export type GenerateMathResponseOutput = z.infer<typeof GenerateMathResponseOutputSchema>;
 
-// Define the calculator tool
+/**
+ * Defines a calculator tool that the Math Agent can use.
+ * This tool evaluates mathematical expressions provided as strings.
+ */
 const calculatorTool = ai.defineTool(
   {
     name: 'calculator',
@@ -35,8 +46,9 @@ const calculatorTool = ai.defineTool(
   },
   async (input) => {
     try {
-      // WARNING: eval() is used for simplicity. In a production environment,
-      // use a safer math expression parser.
+      // WARNING: eval() is used for simplicity due to its ability to handle complex expressions like '15 - (5 + 2 + 3)'.
+      // In a production environment with untrusted input, consider using a safer math expression parser/evaluator
+      // library (e.g., math.js) to prevent potential security vulnerabilities associated with eval().
       const result = eval(input.expression);
       if (typeof result !== 'number' || isNaN(result) || !isFinite(result)) {
         return { result: `Error: Invalid expression or result (${result})` };
@@ -48,16 +60,26 @@ const calculatorTool = ai.defineTool(
   }
 );
 
+/**
+ * Publicly exported function that invokes the math response generation flow.
+ * @param {GenerateMathResponseInput} input - The math question.
+ * @returns {Promise<GenerateMathResponseOutput>} The generated answer or explanation.
+ */
 export async function generateMathResponse(input: GenerateMathResponseInput): Promise<GenerateMathResponseOutput> {
   return generateMathResponseFlow(input);
 }
 
+/**
+ * Defines the Genkit prompt for the Math Agent.
+ * This prompt instructs the LLM on how to behave as a math tutor,
+ * when to use the calculator tool, and how to format its response.
+ */
 const generateMathResponsePrompt = ai.definePrompt({
   name: 'generateMathResponsePrompt',
   input: {schema: GenerateMathResponseInputSchema},
   output: {schema: GenerateMathResponseOutputSchema},
-  tools: [calculatorTool], // Make the tool available to the prompt
-  prompt: `You are an expert math tutor who specializes in providing step-by-step solutions and explanations to math questions.
+  tools: [calculatorTool], // Makes the calculator tool available to this prompt.
+  prompt: `You are an expert math tutor (Math Whiz) who specializes in providing step-by-step solutions and explanations to math questions.
 Your goal is to answer the user's question comprehensively.
 
 If the question involves a direct calculation or can be broken down into steps involving calculations, you MUST use the 'calculator' tool.
@@ -73,7 +95,7 @@ For word problems, carefully analyze the problem to identify the numbers and the
 For instance, if the question is: "suppose nishant has 15 apples, of which he gave 5 to shrish, 2 to gaurav and 3 to vansh, please get me how many apples is nishant left with"
 You should:
 1.  Understand Nishant starts with 15 apples.
-2.  Calculate the total apples given away: 5 (to Shrish) + 2 (to Gaurav) + 3 (to Vansh).
+2.  Calculate the total apples given away: 5 (to Shrish) + 2 (to Gaurav) + 3 (to Vansh). This could be expressed as (5 + 2 + 3).
 3.  Formulate the expression to find the remaining apples: 15 - (5 + 2 + 3).
 4.  Use the calculator tool with the expression "15 - (5 + 2 + 3)".
 5.  Explain these steps and the final answer based on the tool's result.
@@ -92,6 +114,11 @@ Provide a detailed solution to the question, explaining each step clearly and co
 `,
 });
 
+/**
+ * Defines the Genkit flow for generating math responses.
+ * This flow takes a math question, invokes the Math Agent prompt (which may use tools),
+ * and returns the structured answer. It includes error handling for null outputs from the LLM.
+ */
 const generateMathResponseFlow = ai.defineFlow(
   {
     name: 'generateMathResponseFlow',
@@ -101,6 +128,7 @@ const generateMathResponseFlow = ai.defineFlow(
   async (input): Promise<GenerateMathResponseOutput> => {
     const { output } = await generateMathResponsePrompt(input);
 
+    // Robustness: Handle cases where the LLM might return null or an unexpected response.
     if (output === null) {
       console.error(
         `Math response prompt for question "${input.question}" returned null output. ` +
@@ -117,4 +145,3 @@ const generateMathResponseFlow = ai.defineFlow(
     return output;
   }
 );
-

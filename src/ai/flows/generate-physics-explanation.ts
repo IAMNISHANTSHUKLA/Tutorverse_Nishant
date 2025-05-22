@@ -2,8 +2,9 @@
 'use server';
 
 /**
- * @fileOverview This file defines a Genkit flow for a Physics Agent.
- * This agent is specialized in generating explanations for physics-related questions and can utilize tools to look up physical constants.
+ * @fileOverview This file defines a Genkit flow for a Physics Agent (Physics Pro).
+ * This agent is specialized in generating explanations for physics-related questions
+ * and can utilize tools to look up physical constants.
  *
  * - generatePhysicsExplanation - A function that takes a physics question as input and returns a clear and concise explanation from the Physics Agent.
  * - GeneratePhysicsExplanationInput - The input type for the generatePhysicsExplanation function.
@@ -13,16 +14,26 @@
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
 
+/**
+ * Defines the expected input schema for the physics explanation generation flow.
+ */
 const GeneratePhysicsExplanationInputSchema = z.object({
   physicsQuestion: z.string().describe('The physics question to be answered.'),
 });
 export type GeneratePhysicsExplanationInput = z.infer<typeof GeneratePhysicsExplanationInputSchema>;
 
+/**
+ * Defines the expected output schema for the physics explanation generation flow.
+ */
 const GeneratePhysicsExplanationOutputSchema = z.object({
   explanation: z.string().describe('A clear and concise explanation of the physics question, including relevant formulas and constants obtained from tools.'),
 });
 export type GeneratePhysicsExplanationOutput = z.infer<typeof GeneratePhysicsExplanationOutputSchema>;
 
+/**
+ * A predefined dictionary of common physical constants.
+ * Used by the `physicsConstantsTool`.
+ */
 const PHYSICAL_CONSTANTS: Record<string, { value: number | string; unit: string; name: string }> = {
   'speed of light': { name: 'Speed of Light (c)', value: 299792458, unit: 'm/s' },
   'gravitational constant': { name: 'Gravitational Constant (G)', value: 6.67430e-11, unit: 'N(m/kg)^2' },
@@ -31,6 +42,10 @@ const PHYSICAL_CONSTANTS: Record<string, { value: number | string; unit: string;
   'elementary charge': { name: 'Elementary Charge (e)', value: 1.602176634e-19, unit: 'C' },
 };
 
+/**
+ * Defines a tool for looking up physical constants.
+ * The Physics Agent can use this tool to fetch values and units of constants.
+ */
 const physicsConstantsTool = ai.defineTool(
   {
     name: 'physicsConstantsLookup',
@@ -54,16 +69,26 @@ const physicsConstantsTool = ai.defineTool(
   }
 );
 
+/**
+ * Publicly exported function that invokes the physics explanation generation flow.
+ * @param {GeneratePhysicsExplanationInput} input - The physics question.
+ * @returns {Promise<GeneratePhysicsExplanationOutput>} The generated explanation.
+ */
 export async function generatePhysicsExplanation(input: GeneratePhysicsExplanationInput): Promise<GeneratePhysicsExplanationOutput> {
   return generatePhysicsExplanationFlow(input);
 }
 
+/**
+ * Defines the Genkit prompt for the Physics Agent.
+ * This prompt instructs the LLM on how to behave as a physics tutor
+ * and when to use the `physicsConstantsLookup` tool.
+ */
 const generatePhysicsExplanationPrompt = ai.definePrompt({
   name: 'generatePhysicsExplanationPrompt',
   input: {schema: GeneratePhysicsExplanationInputSchema},
   output: {schema: GeneratePhysicsExplanationOutputSchema},
-  tools: [physicsConstantsTool], // Make the tool available
-  prompt: `You are an expert physics tutor (Physics Agent). Please provide a clear and concise explanation of the following physics question.
+  tools: [physicsConstantsTool], // Makes the tool available to this prompt.
+  prompt: `You are an expert physics tutor (Physics Pro). Please provide a clear and concise explanation of the following physics question.
   If the question involves or requires specific physical constants (e.g., speed of light, Planck constant), use the 'physicsConstantsLookup' tool to fetch their values and units.
   Clearly state any constants used and their values obtained from the tool in your explanation.
 
@@ -72,6 +97,11 @@ Physics Question: {{{physicsQuestion}}}
 Explanation:`,
 });
 
+/**
+ * Defines the Genkit flow for generating physics explanations.
+ * This flow takes a physics question, invokes the Physics Agent prompt,
+ * and returns the structured explanation.
+ */
 const generatePhysicsExplanationFlow = ai.defineFlow(
   {
     name: 'generatePhysicsExplanationFlow',
@@ -80,8 +110,8 @@ const generatePhysicsExplanationFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await generatePhysicsExplanationPrompt(input);
+    // Assume output will conform to schema if not null.
+    // Error handling for null output can be added if needed, similar to Math flow.
     return output!;
   }
 );
-
-    

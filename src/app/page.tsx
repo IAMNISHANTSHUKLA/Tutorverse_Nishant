@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import Link from 'next/link'; // Keep Link for the header logo
+import Link from 'next/link';
 import { SendHorizonal, Sparkles, BookOpen, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 /**
  * HomePage component: Serves as the main interface for the TutorVerse application.
  * It includes a welcome section and a chat interface for users to interact with AI tutors.
+ * Authentication has been removed; the chat is publicly accessible.
  */
 export default function HomePage() {
   const [query, setQuery] = React.useState('');
@@ -33,21 +34,31 @@ export default function HomePage() {
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Scroll to the bottom of the chat messages when new messages are added.
+  /**
+   * Scrolls the chat area to the bottom, ensuring the latest message is visible.
+   */
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   React.useEffect(scrollToBottom, [messages]);
 
-  // Focus the input field when the component mounts if no other element is active
+  /**
+   * Focuses the chat input field when the component mounts,
+   * if no other element is currently active.
+   */
   React.useEffect(() => {
     if (inputRef.current && document.activeElement !== inputRef.current) {
        setTimeout(() => inputRef.current?.focus(), 0);
     }
   }, []);
 
-  // Handles the submission of the user's query.
+  /**
+   * Handles the submission of the user's query via the chat form.
+   * It adds the user's message and a loading indicator to the chat,
+   * then calls the `processUserQuery` server action to get the AI's response.
+   * @param {React.FormEvent<HTMLFormElement>} event - The form submission event.
+   */
   const handleFormSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (!query.trim() || isLoading) return;
@@ -57,11 +68,11 @@ export default function HomePage() {
       role: 'user',
       content: query,
     };
-    const loadingMessageId = (Date.now() + 1).toString();
+    const loadingMessageId = (Date.now() + 1).toString(); // Unique ID for loading message
     const loadingMessage: Message = {
       id: loadingMessageId,
       role: 'assistant',
-      content: 'Thinking...',
+      content: 'Thinking...', // This will be replaced by the TypingIndicator via ChatMessage component
       isLoading: true,
     };
 
@@ -72,7 +83,7 @@ export default function HomePage() {
     try {
       const result = await processUserQuery(userMessage.content as string);
       const assistantMessage: Message = {
-        id: loadingMessageId,
+        id: loadingMessageId, // Use the same ID to replace the loading message
         role: 'assistant',
         content: result.text,
         intent: result.intent,
@@ -86,7 +97,7 @@ export default function HomePage() {
         ? `Oh no! Something went a bit wobbly. Please try asking again. (Details: ${error.message})`
         : 'Oh no! Something went a bit wobbly. Please try asking again.';
       const errorMessage: Message = {
-        id: loadingMessageId,
+        id: loadingMessageId, // Use the same ID to replace the loading message
         role: 'assistant',
         content: errorMessageContent,
         intent: 'error',
@@ -96,22 +107,26 @@ export default function HomePage() {
       );
     } finally {
       setIsLoading(false);
+      // Re-focus the input field after processing is complete.
       if (inputRef.current) {
         setTimeout(() => inputRef.current?.focus(), 0);
       }
     }
   };
 
-  // Welcome section
+  /**
+   * WelcomeSection component: Displays a hero section with a welcome message and call to action.
+   * Shown only when the chat has not yet started.
+   */
   const WelcomeSection = () => (
     <div className="relative w-full h-auto md:h-[calc(100vh-400px)] min-h-[400px] rounded-lg overflow-hidden shadow-xl mb-10 flex items-center justify-center p-4 bg-secondary/10">
       <Image
-        src="https://placehold.co/1200x600/FFFFE0/008080.png"
+        src="https://placehold.co/1200x600.png" // Generic placeholder, colors are theme-dependent
         alt="A cheerful and inviting learning environment with abstract educational icons"
         fill
         style={{ objectFit: "cover" }}
         data-ai-hint="education learning kids"
-        className="opacity-20"
+        className="opacity-20" // Soften the background image
       />
       <div className="relative z-10 text-center p-6 md:p-10 bg-background/80 backdrop-blur-md rounded-xl shadow-2xl max-w-3xl mx-auto">
         <div className="flex justify-center mb-6">
@@ -126,15 +141,18 @@ export default function HomePage() {
         <Button
           size="lg"
           className="bg-accent hover:bg-accent/90 text-accent-foreground rounded-full shadow-lg px-6 sm:px-10 py-4 sm:py-7 text-xl font-semibold transform hover:scale-105 transition-transform mt-6"
-          onClick={() => inputRef.current?.focus()}
+          onClick={() => inputRef.current?.focus()} // Focus input on click
         >
-           Start Your Adventure!
+           Ask Your First Question!
         </Button>
       </div>
     </div>
   );
 
-  // Feature cards - more descriptive and child-friendly
+  /**
+   * FeatureCards component: Displays key features of the TutorVerse application.
+   * Shown only when the chat has not yet started.
+   */
   const FeatureCards = () => (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 px-4">
       <Card className="hover:shadow-xl transition-shadow duration-300 bg-card/90 backdrop-blur-sm border-primary/30">
@@ -166,6 +184,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      {/* Header section with logo and app title */}
       <header className="p-4 border-b border-border/70 flex items-center justify-between sticky top-0 bg-background/90 backdrop-blur-md z-20 shadow-md">
         <Link href="/" className="flex items-center space-x-3">
           <LogoIcon className="h-10 w-10 text-primary" />
@@ -173,9 +192,10 @@ export default function HomePage() {
             TutorVerse
           </h1>
         </Link>
-        {/* AuthStatus removed as authentication is no longer part of the app */}
+        {/* Authentication status components have been removed */}
       </header>
 
+      {/* Main content area, including chat messages and input form */}
       <div className="flex-1 flex flex-col overflow-hidden">
         <main className="flex-1 flex flex-col p-0 md:p-4">
           <ScrollArea className="flex-1" id="message-scroll-area">
@@ -188,13 +208,15 @@ export default function HomePage() {
                 </>
               )}
 
+              {/* Render all chat messages */}
               {messages.map((msg) => (
                 <ChatMessage key={msg.id} {...msg} />
               ))}
-              <div ref={messagesEndRef} />
+              <div ref={messagesEndRef} /> {/* Anchor for scrolling to bottom */}
             </div>
           </ScrollArea>
 
+          {/* Footer section with chat input form */}
           <footer className="p-4 border-t border-border/70 bg-background/85 sticky bottom-0 backdrop-blur-sm">
             <form onSubmit={handleFormSubmit} className="flex items-center space-x-3">
               <Input
@@ -227,5 +249,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
